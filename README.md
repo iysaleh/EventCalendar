@@ -29,7 +29,7 @@ Development Environment Setup Instructions
 
 * Run EventCalendar
 
-    `EventCalendar.exe`
+    `EventCalendar`
 
 MongoDB/NodeJS Server Setup Instructions
 -------------------------------------------

@@ -21,12 +21,12 @@ Development Environment Setup Instructions
 
 * Run the bundler for your platform
 
-    astilectron-bundler -v
+    `astilectron-bundler -v`
 
 * Build EventCalendar
 
-    go build EventCalendar
+    `go build EventCalendar`
 
 * Run EventCalendar
 
-    EventCalendar.exe
+    `EventCalendar.exe`

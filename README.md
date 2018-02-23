@@ -20,10 +20,13 @@ Development Environment Setup Instructions
 * Using CLI, cd into the checkout directory
 
 * Run the bundler for your platform
+
     astilectron-bundler -v
 
 * Build EventCalendar
+
     go build EventCalendar
 
 * Run EventCalendar
+
     EventCalendar.exe

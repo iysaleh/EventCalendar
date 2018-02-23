@@ -30,3 +30,10 @@ Development Environment Setup Instructions
 * Run EventCalendar
 
     `EventCalendar.exe`
+
+MongoDB/NodeJS Server Setup Instructions
+-------------------------------------------
+* Setup a Linux server (RaspberryPi used here)
+* Install MongoDB for your OS (`sudo apt-get install mongodb`)
+* Install Node.js and NPM for your platform (https://nodejs.org/en/)
+* Setup Node.js service and point it to the server application.

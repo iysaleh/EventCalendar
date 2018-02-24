@@ -33,7 +33,7 @@ const server = http.createServer((req, res) => {
       //else if (a_result.length === 0) { employees.insert({name:name,password,password,meetings:[]}); }
       //else {console.log("Employee already exists.");}
 	  
-	});*/
+	});
 	db.close(); 
   });
 }*/

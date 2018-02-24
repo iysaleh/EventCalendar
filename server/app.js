@@ -23,7 +23,7 @@ function addEmployee (name,password) {
 			}
 			db.close()
 		});
-	};
+	});
 }
 
 server.listen(port, hostname, () => {

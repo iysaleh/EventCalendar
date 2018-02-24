@@ -15,8 +15,8 @@ function addEmployee (name,password) {
   MongoClient.connect(url, function(err, db){
     var employees = db.collection('employees');
     var query = {name:name}
-    employees.find(query).toArray(function(a_err, a_result){
-      if (a_err) {console.log(a_err);} 
+    employees.find(query).toArray(function(err, result){
+      if (err) {console.log(err);} 
       //else if (a_result.length === 0) { employees.insert({name:name,password,password,meetings:[]}); }
       //else {console.log("Employee already exists.");}
 	  employees.insert({name:name,password,password,meetings:[]});

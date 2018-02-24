@@ -4,6 +4,8 @@ const port = 3000;
 const MongoClient = require('mongodb').MongoClient, assert=require('assert');
 const url = 'mongodb://localhost:27017/EventCalendar';
 const dbName = 'EventCalendar';
+const Promise = require('promise');
+
 
 const server = http.createServer((req, res) => {
   res.statusCode = 200;

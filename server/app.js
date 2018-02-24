@@ -13,7 +13,7 @@ const server = http.createServer((req, res) => {
   res.end('Hello World again\n');
 });
 
-function addEmployee (name,password) {
+/*function addEmployee (name,password) {
   MongoClient.connect(url, function(err, db){
     var employees = db.collection('employees');
     var query = {name:name}
@@ -35,6 +35,20 @@ function addEmployee (name,password) {
 	});*/
 	db.close(); 
   });
+}*/
+
+function addEmployee (name,password) {
+  MongoClient.connect(url, function(err, db){
+    var employees = db.collection('employees');
+    var query = {name:name};
+    employees.find((query).(err,doc)=>{
+      if (err) {
+            employees.insert({name:name,password:password,meetings:[]});
+	} else {
+            console.log(doc);
+        }
+	db.close(); 
+    });
 }
 
 server.listen(port, hostname, () => {

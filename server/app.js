@@ -15,12 +15,11 @@ function addEmployee (name,password) {
   MongoClient.connect(url, function(err, db){
     var employees = db.collection('employees');
     var query = {name:name}
-    db.collection('EventCalendar').find(query).toArray() {
-        if (err) throw "Name already exits.";
-        else {employees.insert({name:name,password,password,meetings:[]})};
-    }
-    employees.insert({name:name,password,password,meetings:[]});
+    db.collection('EventCalendar').find(query).toArray(function(a_err, a_result){
+        if (a_err) employees.insert({name:name,password,password,meetings:[]});
+        else {throw "Employee already exits."};
     db.close(); 
+	});
   });
 }
 

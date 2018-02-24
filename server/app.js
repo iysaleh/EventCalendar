@@ -19,7 +19,7 @@ function addEmployee (name,password) {
 		var query = {name:name}
 		employees.find(query).toArray().then(function(result){
 			if (result.length === 0) {
-				employees.insert({name:name,password:password,meetings:[]});
+				employees.insert({name:name,password:password,isAdmin:false,startHour:"07:00:00",endHour:"19:00:00",meetings:[]});
 			}
 			db.close()
 		});
@@ -28,5 +28,5 @@ function addEmployee (name,password) {
 
 server.listen(port, hostname, () => {
 	console.log(`Server running at http://${hostname}:${port}/`);
-	addEmployee("test3","test3");
+	addEmployee("test3","test3",);
 });

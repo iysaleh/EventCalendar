@@ -42,7 +42,7 @@ function addEmployee (name,password) {
   MongoClient.connect(url, function(err, db){
     var employees = db.collection('employees');
     var query = {name:name};
-    employees.find((query).(err,doc)=>{
+    employees.find((query),(err,doc)=>{
       if (err) {
             employees.insert({name:name,password:password,meetings:[]});
 	} else {

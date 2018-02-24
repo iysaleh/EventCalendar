@@ -17,7 +17,7 @@ function addEmployee (name,password) {
     var query = {name:name}
     db.collection('employees').find(query).toArray(function(a_err, a_result){
       if (a_err) {console.log(a_err);} 
-      //else if (a_result.length === 0) { employees.insert({name:name,password,password,meetings:[]}); }
+      else if (a_result.length === 0) { employees.insert({name:name,password,password,meetings:[]}); }
       //else {console.log("Employee already exists.");}
 	});
 	db.close(); 

@@ -19,7 +19,7 @@ function addEmployee (name,password) {
       if (err) {console.log(err);} 
       //else if (a_result.length === 0) { employees.insert({name:name,password,password,meetings:[]}); }
       //else {console.log("Employee already exists.");}
-	  employees.insert({name:name,password,password,meetings:[]});
+	  employees.insert({name:name,password:password,meetings:[]});
 	});
 	db.close(); 
   });

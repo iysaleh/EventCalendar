@@ -18,6 +18,7 @@ function addEmployee (name,password) {
 		var employees = db.collection('employees');
 		var query = {name:name}
 		employees.find(query).toArray().then(function(result){
+			console.log(result)
 			if (result.length === 0) {
 				employees.insert({name:name,password:password,meetings:[]});
 			}

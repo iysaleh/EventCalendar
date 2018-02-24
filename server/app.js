@@ -15,7 +15,8 @@ function addEmployee (name,password) {
   MongoClient.connect(url, function(err, db){
     var employees = db.collection('employees');
     var query = {name:name}
-    employees.find(query).then(function(results){
+    var empWithName = employees.find(query)
+	empWithName.then(function(results){
 		empWithName = results.toArray();
 		if (empWithName.length === 0){
           employees.insert({name:name,password:password,meetings:[]});

@@ -14,6 +14,11 @@ const server = http.createServer((req, res) => {
 function addEmployee (name,password) {
   MongoClient.connect(url, function(err, db){
     var employees = db.collection('employees');
+    var query = {name:name}
+    db.collection('EventCalendar').find(query).toArray() {
+        if (err) throw "Name already exits.";
+        else {employees.insert({name:name,password,password,meetings:[]})};
+    }
     employees.insert({name:name,password,password,meetings:[]});
     db.close(); 
   });

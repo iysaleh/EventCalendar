@@ -18,6 +18,7 @@ const server = http.createServer((req, res) => {
     var employees = db.collection('employees');
     var query = {name:name}
     var empWithName = employees.find(query)
+	console.log(empWithName);
 	empWithName.then(function(results){
 		empWithName = results.toArray();
 		if (empWithName.length === 0){

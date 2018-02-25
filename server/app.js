@@ -71,7 +71,7 @@ function roomCapacity (roomNum) {
 		db.close();
 }
 
-var server = connect()
+server.connect()
 		.use(function (req, res, next) {
 			var query;
 			var url_parts = url.parse(req.url, true);

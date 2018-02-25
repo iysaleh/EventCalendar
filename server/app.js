@@ -7,11 +7,11 @@ const dbName = 'EventCalendar';
 const Promise = require('promise');
 
 
-const server = http.createServer((req, res) => {
+/*const server = http.createServer((req, res) => {
 	res.statusCode = 200;
 	res.setHeader('Content-Type', 'text/plain');
 	res.end('Hello World again\n');
-});
+});*/
 
 function addEmployee (name,password) {
 	MongoClient.connect(url, function(err, db){
@@ -71,7 +71,7 @@ function roomCapacity (roomNum) {
 		db.close();
 }
 
-server.connect()
+var server = connect()
 		.use(function (req, res, next) {
 			var query;
 			var url_parts = url.parse(req.url, true);

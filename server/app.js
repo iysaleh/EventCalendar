@@ -77,25 +77,23 @@ var server = connect()
 			var url_parts = url.parse(req.url, true);
 			query = url_parts.query;
 
-			if (req.method == 'GET') {
+			if (req.method === 'GET') {
 				switch (url_parts.pathname) {
 					case '/roomCapacity':
 					// do something
 					roomCapacity(2)
 					res.end();
 					break;
-				}
-			else if (req.method == 'POST') {
+			} else if (req.method === 'POST') {
 				switch (url_parts.pathname) {
 					case '/somepath2':
 					// do something
 					res.end();
 					break;
 				}
-			}
-			else {
+			} else {
 				console.log('NOT GET OR POST');
-			}
+				}
 			}
 		}).listen(port, hostname, () => {
 			console.log(`Server running at http://${hostname}:${port}/`);

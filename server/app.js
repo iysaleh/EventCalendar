@@ -35,7 +35,7 @@ function getEmployeeList() {
 		}).toArray().then(function(result){
 			console.log('HAVE EMPLOYEE LIST');
 			console.log(result);
-			return result;
+			resolve(result);
 		});
 	});
 }

@@ -102,7 +102,7 @@ var server = connect()
 					res.end(res.body);
 					break;
 					case '/getEmployeeList':
-					res.body = getEmployeeList()
+					res.body = getEmployeeList().toString()
 					res.setHeader('Content-Type', 'text/plain');
 					res.end(res.body);
 					break;

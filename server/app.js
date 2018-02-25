@@ -71,6 +71,7 @@ function roomCapacity (roomNum) {
 			room.find({roomNum:roomNum});
                         db.close();
 		});
+                return "63 people";
 }
 
 var server = connect()
@@ -82,8 +83,8 @@ var server = connect()
 			if (req.method === 'GET') {
 				switch (url_parts.pathname) {
 					case '/roomCapacity':
-					// do something
-					roomCapacity(2);
+					res.body = roomCapacity(2);
+                                        res.setHeader('Content-Type', 'text/plain');
 					res.end();
 					break;
 				}

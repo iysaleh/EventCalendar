@@ -28,7 +28,7 @@ function addEmployee (name,password) {
 	});
 }
 
-/*function getEmployeeList() {
+function getEmployeeList() {
 	return new Promise( function(resolve) {
 		MongoClient.connect(sUrl, function(err, db){
 			db.collection('employees').find().map(function(item){
@@ -40,18 +40,19 @@ function addEmployee (name,password) {
 			});
 		});
 	});
-}*/
+}
 
+/*
 async function getEmployeeList() {
 		let result = await MongoClient.connect(sUrl, function(err, db){
 			db.collection('employees').find().map(function(item){
 				return item.name;
 			}).toArray();
-			//db.close();
+			db.close();
 		});
 		console.log(result);
 		return result;
-}
+}*/
 
 function loginEmployee (name,password) {
 		

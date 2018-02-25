@@ -47,6 +47,7 @@ async function getEmployeeList() {
 			db.collection('employees').find().map(function(item){
 				return item.name;
 			}).toArray();
+			db.close();
 		});
 		console.log(result);
 		return result;
@@ -112,11 +113,14 @@ var server = connect()
 					res.end(res.body);
 					break;
 					case '/getEmployeeList':
-					res.body = JSON.stringify(getEmployeeList())
-					console.log(res.body)
-					res.setHeader('Content-Type', 'text/plain');
-					res.end(res.body);
-					break;
+					getEmployeeList().then(function(result){
+						res.body = JSON.stringify(getEmployeeList())
+						console.log(res.body)
+						res.setHeader('Content-Type', 'text/plain');
+						res.end(res.body);
+						break;
+					});
+
 				}
 			} else if (req.method === 'POST') {
 				switch (url_parts.pathname) {

@@ -32,7 +32,7 @@ function getEmployeeList() {
 	MongoClient.connect(sUrl, function(err, db){
 		db.collection('employees').find().map(function(item){
 			return item.name;
-		})toArray().then(function(result){
+		}).toArray().then(function(result){
 			return result;
 		});
 	});

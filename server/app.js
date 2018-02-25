@@ -36,32 +36,32 @@ function addRoom (roomNum,roomCapacity) {
 		MongoClient.connect(sUrl, function(err, db) {
 			var room=db.collection('rooms');
 			room.insert({roomNum:roomNum},{roomCapacity:roomCapacity});
+                        db.close();
 		});
-		db.close();
 };
 
 function addMeeting (ownerMeeting,startTime,endTime,roomNum,subject,description) {
 		MongoClient.connect(sUrl, function(err, db) {
 			var meeting=db.collection('meetings');
 			meeting.insert({ownerMeeting:ownerMeeting},{startTime:startTime},{endTime:endTime},{roomNum:roomNum},{subject:subject},{description:description});
-		});
-		dbclose();
+                        db.close();
+                });
 };
 
 function deleteRoom (roomNum) {
 		MongoClient.connect(sUrl, function(err, db) {
 			var room=db.collection('rooms');
 			room.remove({roomNum:roomNum},{roomCapacity:roomCapacity} );
+                        db.close();
 		});
-		db.close();
 };
 
 function deleteMeeting (ownerMeeting,startTime,endTime,roomNum,subject,description) {
 		MongoClient.connect(sUrl, function(err, db) {
 			var meeting=db.collection('meetings');
 			meeting.remove({ownerMeeting:ownerMeeting},{startTime:startTime},{endTime:endTime},{roomNum:roomNum},{subject:subject},{description:description});
-		});
-		db.close();
+                        db.close();
+                });
 };
 
 function roomCapacity (roomNum) {
@@ -69,8 +69,8 @@ function roomCapacity (roomNum) {
 		MongoClient.connect(sUrl, function(err, db) {
 			var room=db.collection('rooms');
 			room.find({roomNum:roomNum});
+                        db.close();
 		});
-		db.close();
 }
 
 var server = connect()

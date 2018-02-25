@@ -28,6 +28,16 @@ function addEmployee (name,password) {
 	});
 }
 
+function getEmployeeList() {
+	MongoClient.connect(sUrl, function(err, db){
+		db.collection('employees').find().map(function(item){
+			return item.name;
+		})toArray().then(function(result){
+			return result;
+		});
+	});
+}
+
 function loginEmployee (name,password) {
 		
 }
@@ -86,6 +96,10 @@ var server = connect()
 					res.body = roomCapacity(2);
 					res.setHeader('Content-Type', 'text/plain');
 					res.end(res.body);
+					break;
+					case '/getEmployeeList':
+					res.setHeader('Content-Type', 'text/plain');
+					res.end(getEmployeeList());
 					break;
 				}
 			} else if (req.method === 'POST') {

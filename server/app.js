@@ -92,7 +92,11 @@ var server = connect()
 					res.end();
 					break;
 				}
-			}}
+			}
+			else {
+				console.log('NOT GET OR POST');
+			}
+			}
 		}).listen(port, hostname, () => {
 			console.log(`Server running at http://${hostname}:${port}/`);
 		});

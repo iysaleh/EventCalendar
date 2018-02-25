@@ -81,7 +81,7 @@ var server = connect()
 				switch (url_parts.pathname) {
 					case '/roomCapacity':
 					// do something
-					roomCapacity(2)
+					roomCapacity(2);
 					res.end();
 					break;
 			} else if (req.method === 'POST') {

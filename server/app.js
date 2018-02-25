@@ -29,7 +29,7 @@ function addEmployee (name,password) {
 }
 
 function getEmployeeList() {
-	MongoClient.connect(sUrl, function(err, db){
+	return new Promise( MongoClient.connect(sUrl, function(err, db){
 		db.collection('employees').find().map(function(item){
 			return item.name;
 		}).toArray().then(function(result){
@@ -37,7 +37,7 @@ function getEmployeeList() {
 			console.log(result);
 			resolve(result);
 		});
-	});
+	}));
 }
 
 function loginEmployee (name,password) {

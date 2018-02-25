@@ -102,7 +102,8 @@ var server = connect()
 					res.end(res.body);
 					break;
 					case '/getEmployeeList':
-					res.body = getEmployeeList().toString()
+					res.body = JSON.stringify(getEmployeeList())
+					console.log(res.body)
 					res.setHeader('Content-Type', 'text/plain');
 					res.end(res.body);
 					break;

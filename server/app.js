@@ -114,7 +114,7 @@ var server = connect()
 					break;
 					case '/getEmployeeList':
 					getEmployeeList().then(function(result){
-						res.body = JSON.stringify(getEmployeeList())
+						res.body = JSON.stringify(result)
 						console.log(res.body)
 						res.setHeader('Content-Type', 'text/plain');
 						res.end(res.body);

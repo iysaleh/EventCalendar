@@ -26,7 +26,51 @@ function addEmployee (name,password) {
 	});
 }
 
+function loginEmployee (name,password) {
+    
+}
+
 server.listen(port, hostname, () => {
 	console.log(`Server running at http://${hostname}:${port}/`);
 	addEmployee("test3","test3",);
 });
+
+function addRoom (roomNum,roomCapacity) {
+    MongoClient.connect(url, function(err, db) {
+        var room=db.collection('rooms');
+        room.insert({roomNum:roomNum},{roomCapacity:roomCapacity});
+    });
+    db.close();
+};
+
+function addMeeting (ownerMeeting,startTime,endTime,roomNum,subject,description) {
+    MongoClient.connect(url, function(err, db) {
+        var meeting=db.collection('meetings');
+        meeting.insert({ownerMeeting:ownerMeeting},{startTime:startTime},{endTime:endTime},{roomNum:roomNum},{subject:subject},{description:description)});
+    });
+    dbclose();
+};
+
+function deleteRoom (roomNum) {
+    MongoClient.connect(url, function(err, db) {
+        var room=db.collection('rooms');
+        room.remove({roomNum:roomNum},{roomCapacity:roomCapacity} );
+    });
+    db.close();
+};
+
+function deleteMeeting (ownerMeeting,startTime,endTime,roomNum,subject,description) {
+    MongoClient.connect(url, function(err, db) {
+        var meeting=db.collection('meetings');
+        meeting.remove({ownerMeeting:ownerMeeting},{startTime:startTime},{endTime:endTime},{roomNum:roomNum},{subject:subject},{description:description});
+    });
+    db.close();
+};
+
+function roomCapacity (roomNum) {
+    MongoClient.connect(url, function(err, db) {
+        var room=db.collection('rooms');
+        room.find({roomNum:roomNum)};
+    });
+    db.close();
+}

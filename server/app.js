@@ -48,7 +48,7 @@ async function getEmployeeList() {
 				return item.name;
 			}).toArray();
 		});
-		
+		console.log(result);
 		return result;
 }
 

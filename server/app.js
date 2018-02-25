@@ -66,8 +66,7 @@ function roomCapacity (roomNum) {
 		console.log('FINDING ROOM');
 		MongoClient.connect(url, function(err, db) {
 			var room=db.collection('rooms');
-			room.find({roomNum:roomNum)};
-			
+			room.find({roomNum:roomNum});
 		});
 		db.close();
 }

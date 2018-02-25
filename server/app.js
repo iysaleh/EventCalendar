@@ -76,7 +76,7 @@ function roomCapacity (roomNum) {
 var server = connect()
 		.use(function (req, res, next) {
 			var query;
-			var url_parts = url.parse(req.sUrl, true);
+			var url_parts = url.parse(req.url, true);
 			query = url_parts.query;
 
 			if (req.method === 'GET') {

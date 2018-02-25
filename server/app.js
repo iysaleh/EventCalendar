@@ -41,7 +41,7 @@ function addRoom (roomNum,roomCapacity) {
 function addMeeting (ownerMeeting,startTime,endTime,roomNum,subject,description) {
 		MongoClient.connect(url, function(err, db) {
 			var meeting=db.collection('meetings');
-			meeting.insert({ownerMeeting:ownerMeeting},{startTime:startTime},{endTime:endTime},{roomNum:roomNum},{subject:subject},{description:description)});
+			meeting.insert({ownerMeeting:ownerMeeting},{startTime:startTime},{endTime:endTime},{roomNum:roomNum},{subject:subject},{description:description});
 		});
 		dbclose();
 };

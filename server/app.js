@@ -44,10 +44,10 @@ function addEmployee (name,password) {
 
 async function getEmployeeList() {
 		let result = await MongoClient.connect(sUrl, function(err, db){
-			let find_results = await db.collection('employees').find().map(function(item){
+			let find_results = db.collection('employees').find().map(function(item){
 				return item.name;
 			});
-			return find_results.toArray();
+			return await find_results.toArray();
 			db.close();
 		});
 		console.log(result);

@@ -4,7 +4,7 @@ const url = require('url');
 const hostname = '0.0.0.0'; //setting variables
 const port = 3000;
 const MongoClient = require('mongodb').MongoClient, assert=require('assert');
-const url = 'mongodb://localhost:27017/EventCalendar';
+const sUrl = 'mongodb://localhost:27017/EventCalendar';
 const dbName = 'EventCalendar';
 const Promise = require('promise');
 
@@ -16,7 +16,7 @@ const Promise = require('promise');
 });*/
 
 function addEmployee (name,password) {
-	MongoClient.connect(url, function(err, db){
+	MongoClient.connect(sUrl, function(err, db){
 		var employees = db.collection('employees');
 		var query = {name:name}
 		employees.find(query).toArray().then(function(result){
@@ -33,7 +33,7 @@ function loginEmployee (name,password) {
 }
 
 function addRoom (roomNum,roomCapacity) {
-		MongoClient.connect(url, function(err, db) {
+		MongoClient.connect(sUrl, function(err, db) {
 			var room=db.collection('rooms');
 			room.insert({roomNum:roomNum},{roomCapacity:roomCapacity});
 		});
@@ -41,7 +41,7 @@ function addRoom (roomNum,roomCapacity) {
 };
 
 function addMeeting (ownerMeeting,startTime,endTime,roomNum,subject,description) {
-		MongoClient.connect(url, function(err, db) {
+		MongoClient.connect(sUrl, function(err, db) {
 			var meeting=db.collection('meetings');
 			meeting.insert({ownerMeeting:ownerMeeting},{startTime:startTime},{endTime:endTime},{roomNum:roomNum},{subject:subject},{description:description});
 		});
@@ -49,7 +49,7 @@ function addMeeting (ownerMeeting,startTime,endTime,roomNum,subject,description)
 };
 
 function deleteRoom (roomNum) {
-		MongoClient.connect(url, function(err, db) {
+		MongoClient.connect(sUrl, function(err, db) {
 			var room=db.collection('rooms');
 			room.remove({roomNum:roomNum},{roomCapacity:roomCapacity} );
 		});
@@ -57,7 +57,7 @@ function deleteRoom (roomNum) {
 };
 
 function deleteMeeting (ownerMeeting,startTime,endTime,roomNum,subject,description) {
-		MongoClient.connect(url, function(err, db) {
+		MongoClient.connect(sUrl, function(err, db) {
 			var meeting=db.collection('meetings');
 			meeting.remove({ownerMeeting:ownerMeeting},{startTime:startTime},{endTime:endTime},{roomNum:roomNum},{subject:subject},{description:description});
 		});
@@ -66,7 +66,7 @@ function deleteMeeting (ownerMeeting,startTime,endTime,roomNum,subject,descripti
 
 function roomCapacity (roomNum) {
 		console.log('FINDING ROOM');
-		MongoClient.connect(url, function(err, db) {
+		MongoClient.connect(sUrl, function(err, db) {
 			var room=db.collection('rooms');
 			room.find({roomNum:roomNum});
 		});
@@ -76,7 +76,7 @@ function roomCapacity (roomNum) {
 var server = connect()
 		.use(function (req, res, next) {
 			var query;
-			var url_parts = url.parse(req.url, true);
+			var url_parts = url.parse(req.sUrl, true);
 			query = url_parts.query;
 
 			if (req.method === 'GET') {

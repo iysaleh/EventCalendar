@@ -91,6 +91,7 @@ var server = connect()
 					// do something
 					res.end();
 					break;
+					}
 				}
 			}
 		}).listen(port, hostname, () => {

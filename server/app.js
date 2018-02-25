@@ -1,5 +1,6 @@
 const http = require('http');// open port
 const connect = require('connect')
+const url = require('url');
 const hostname = '0.0.0.0'; //setting variables
 const port = 3000;
 const MongoClient = require('mongodb').MongoClient, assert=require('assert');

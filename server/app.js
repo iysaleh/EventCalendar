@@ -84,7 +84,6 @@ var server = connect()
 					roomCapacity(2)
 					res.end();
 					break;
-					}
 				}
 			else if (req.method == 'POST')
 				switch (url_parts.pathname) {

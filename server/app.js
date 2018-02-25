@@ -33,6 +33,8 @@ function getEmployeeList() {
 		db.collection('employees').find().map(function(item){
 			return item.name;
 		}).toArray().then(function(result){
+			console.log('HAVE EMPLOYEE LIST');
+			console.log(result);
 			return result;
 		});
 	});

@@ -118,8 +118,8 @@ var server = connect()
 						console.log(res.body)
 						res.setHeader('Content-Type', 'text/plain');
 						res.end(res.body);
-						break;
 					});
+					break;
 
 				}
 			} else if (req.method === 'POST') {

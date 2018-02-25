@@ -100,8 +100,9 @@ var server = connect()
 					res.end(res.body);
 					break;
 					case '/getEmployeeList':
+					res.body = getEmployeeList()
 					res.setHeader('Content-Type', 'text/plain');
-					res.end(getEmployeeList());
+					res.end(res.body);
 					break;
 				}
 			} else if (req.method === 'POST') {

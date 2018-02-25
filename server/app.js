@@ -86,7 +86,7 @@ var server = connect()
 					break;
 					}
 				}
-			else if (req.method == 'POST') {}
+			else if (req.method == 'POST')
 				switch (url_parts.pathname) {
 					case '/somepath2':
 					// do something

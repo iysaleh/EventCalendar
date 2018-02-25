@@ -91,9 +91,8 @@ var server = connect()
 					// do something
 					res.end();
 					break;
-					}
 				}
-			}
+			}}
 		}).listen(port, hostname, () => {
 			console.log(`Server running at http://${hostname}:${port}/`);
 		});

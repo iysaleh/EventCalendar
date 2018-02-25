@@ -29,15 +29,17 @@ function addEmployee (name,password) {
 }
 
 function getEmployeeList() {
-	return new Promise( MongoClient.connect(sUrl, function(err, db){
-		db.collection('employees').find().map(function(item){
-			return item.name;
-		}).toArray().then(function(result){
-			console.log('HAVE EMPLOYEE LIST');
-			console.log(result);
-			resolve(result);
+	return new Promise( function(resolve) {
+		MongoClient.connect(sUrl, function(err, db){
+			db.collection('employees').find().map(function(item){
+				return item.name;
+			}).toArray().then(function(result){
+				console.log('HAVE EMPLOYEE LIST');
+				console.log(result);
+				resolve(result);
+			});
 		});
-	}));
+	});
 }
 
 function loginEmployee (name,password) {

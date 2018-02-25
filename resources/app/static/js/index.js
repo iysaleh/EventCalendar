@@ -10,8 +10,9 @@ let index = {
         asticode.loader.init();
         asticode.modaler.init();
         asticode.notifier.init();
+		//asticode.calendar.init();
 
-        // Wait for astilectron to be ready
+		// Wait for astilectron to be ready
         document.addEventListener('astilectron-ready', function() {
             // Listen
             index.listen();

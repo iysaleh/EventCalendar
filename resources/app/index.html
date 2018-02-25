@@ -7,11 +7,46 @@
     <link rel="stylesheet" href="static/lib/astimodaler/astimodaler.css">
     <link rel="stylesheet" href="static/lib/astinotifier/astinotifier.css">
     <link rel="stylesheet" href="static/lib/font-awesome-4.7.0/css/font-awesome.min.css">
+	<link href="fullcalendar-3.8.2/fullcalendar.css" rel="stylesheet" />
+	<link href="fullcalendar-3.8.2/fullcalendar.print.min.css" rel="stylesheet" media="print" />
+	<script src="fullcalendar-3.8.2/lib/moment.min.js"></script>
+	<!--Required for JQuery Support in Go -->
+	<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+	<script src="fullcalendar-3.8.2/lib/jquery.min.js"></script>
+	<script src="fullcalendar-3.8.2/fullcalendar.js"></script>
+	<script>if (window.module) module = window.module;</script>
+	
+	<style>
+
+	  body {
+		margin: 40px 10px;
+		padding: 0;
+		font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+		font-size: 14px;
+	  }
+
+	  #calendar {
+		max-width: 900px;
+		margin: 0 auto;
+	  }
+
+	</style>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#calendar').fullCalendar({
+			defaultDate: '2018-02-12',
+			editable: true,
+			eventLimit: true,
+			events: []
+			});
+		});
+	</script>
 </head>
 <body>
     <div class="left" id="notifications"></div>
     <div class="right" id="calendar_meetings">
-        <div class="title"><span id="path"></span></div>
+        <div class="title">Event Calendar</div>
+		<div id='calendar'></div>
         <!--<div class="panel"><span class="stat" id="files_count"></span> file(s)</div> 
         <div class="panel" id="files_panel">
             <div class="chart_title">Files repartition</div>
@@ -24,8 +59,10 @@
     <script src="static/lib/astiloader/astiloader.js"></script>
     <script src="static/lib/astimodaler/astimodaler.js"></script>
     <script src="static/lib/astinotifier/astinotifier.js"></script>
+	<!-- <script src="static/lib/asticalendar/asticalendar.js"></script> -->
     <script type="text/javascript">
         index.init();
     </script>
+	
 </body>
 </html>

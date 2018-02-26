@@ -18,8 +18,8 @@ This is using the bootstrap and the bundler.`
 
 // Vars
 var (
-	AppName string
-	BuiltAt string
+	AppName "EventCalendar"
+	BuiltAt string //IS-Fix this -- It's no longer initialized because I removed bind.go
 	debug   = flag.Bool("d", false, "enables the debug mode")
 	w       *astilectron.Window
 )

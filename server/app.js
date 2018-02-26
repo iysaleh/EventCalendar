@@ -41,6 +41,23 @@ function getEmployeeList() {
 }
 
 function login (name,password) {
+	return new Promise( function(resolve) {
+		MongoClient.connect(sUrl, function(err, db){
+			db.collection('employees').find({name:name, password:password}).map(function(item){
+				return {name:item.name, meetings:item.meetings};
+			}).toArray().then(function(result){
+				if (result.name===name){
+					//Add login session token
+					
+				}
+				resolve(result);
+			});
+		});
+	});
+}
+
+function addLoginSessionToken(name) {
+	
 	
 }
 

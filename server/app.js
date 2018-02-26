@@ -34,28 +34,14 @@ function getEmployeeList() {
 			db.collection('employees').find().map(function(item){
 				return item.name;
 			}).toArray().then(function(result){
-				console.log('HAVE EMPLOYEE LIST');
-				console.log(result);
 				resolve(result);
 			});
 		});
 	});
 }
 
-/*
-async function getEmployeeList() {
-		let result = await MongoClient.connect(sUrl, function(err, db){
-			db.collection('employees').find().map(function(item){
-				return item.name;
-			}).toArray();
-			db.close();
-		});
-		console.log(result);
-		return result;
-}*/
-
-function loginEmployee (name,password) {
-		
+function login (name,password) {
+	
 }
 
 function addRoom (roomNum,roomCapacity) {
@@ -112,12 +98,11 @@ var server = connect()
 					res.body = roomCapacity(2);
 					res.setHeader('Content-Type', 'text/plain');
 					res.end(res.body);
+					console.log(query);
 					break;
 					case '/getEmployeeList':
 					getEmployeeList().then(function(result){
-						console.log(result);
 						res.body = JSON.stringify(result);
-						console.log(res.body);
 						res.setHeader('Content-Type', 'text/plain');
 						res.end(res.body);
 					});

@@ -11,12 +11,14 @@ let index = {
         asticode.modaler.init();
         asticode.notifier.init();
 		//asticode.calendar.init();
-
+		
+		//Load HTML Login Page to left panel.
+		$('#left').load("login.html");
+		
 		// Wait for astilectron to be ready
         document.addEventListener('astilectron-ready', function() {
             // Listen
             index.listen();
-
         })
     },
     listen: function() {

@@ -113,9 +113,11 @@ var server = connect()
 				switch (url_parts.pathname) {
 					case '/login':
 					console.log(query);
+					console.log(query.user);
 					//res.body = login(query);
 					res.setHeader('Content-Type', 'text/plain');
 					//res.end(res.body);
+					break;
 					case '/roomCapacity':
 					res.body = roomCapacity(2);
 					res.setHeader('Content-Type', 'text/plain');

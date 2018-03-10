@@ -111,6 +111,11 @@ var server = connect()
 
 			if (req.method === 'GET') {
 				switch (url_parts.pathname) {
+					case '/login':
+					console.log(query);
+					//res.body = login(query);
+					res.setHeader('Content-Type', 'text/plain');
+					//res.end(res.body);
 					case '/roomCapacity':
 					res.body = roomCapacity(2);
 					res.setHeader('Content-Type', 'text/plain');

@@ -38,4 +38,5 @@ MongoDB/NodeJS Server Setup Instructions
 * Install Node.js and NPM for your platform (https://nodejs.org/en/)
 * Setup Node.js service and point it to the server application.
 * `npm install mongodb@2.2 -save`
-* `npm install connect`
+* `npm install connect --save`
+* `npm install moment --save`

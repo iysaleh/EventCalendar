@@ -132,7 +132,6 @@ var server = connect()
 					loginResult = login(query.user,query.pass);
 					res.body = JSON.stringify(loginResult);
 					res.setHeader('Content-Type', 'application/json');
-					res.type('application/json');
 					res.end(res.body);
 					break;
 					case '/roomCapacity':

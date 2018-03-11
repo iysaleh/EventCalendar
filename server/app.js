@@ -47,11 +47,11 @@ function login (username,password) {
 			db.collection('employees').find({username:username, password:password}).map(function(item){
 				return {username:item.username, meetings:item.meetings, notifications:item.notifications, sessionToken:item.sessionToken,fName:item.fName};
 			}).toArray().then(function(result){
-				if (result.username===username){
+				if (result.length===1){
 					//Generate login Session token if not exist
-					if (result.sessionToken===""){
-						result.sessionToken = randU32Sync();
-						addLoginSessionToken(result.username,result.sessionToken)
+					if (result[0].sessionToken===""){
+						result[0].sessionToken = randU32Sync();
+						addLoginSessionToken(result[0].username,result[0].sessionToken);
 					}
 				}
 				resolve(result);
@@ -130,9 +130,11 @@ var server = connect()
 				switch (url_parts.pathname) {
 					case '/login':
 					loginResult = login(query.user,query.pass);
-					res.body = JSON.stringify(loginResult);
-					res.setHeader('Content-Type', 'application/json');
-					res.end(res.body);
+					Promise.all([loginResult]).then(function(result){
+						res.body = JSON.stringify(result[0]);
+						res.setHeader('Content-Type', 'application/json');
+						res.end(res.body);
+					});
 					break;
 					case '/roomCapacity':
 					res.body = roomCapacity(2);

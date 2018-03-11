@@ -27,6 +27,15 @@ func handleMessages(_ *astilectron.Window, m bootstrap.MessageIn) (payload inter
 				return
 			}
 		}
+	case "login":
+		var user string
+		var pass string
+		if len (m.Payload) > 0 {
+			if err = json.Unmarshal(m.Payload, &user, &pass); err != nil {
+				payload = err.Error()
+				return
+			}
+		}
 
 	}
 	return

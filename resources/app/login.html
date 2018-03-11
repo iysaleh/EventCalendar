@@ -1,22 +1,32 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="UTF-8">
+	<!--Required for JQuery Support in Go -->
+	<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+	<script src="fullcalendar-3.8.2/lib/jquery.min.js"></script>
 <link rel="stylesheet" type="text/css" href="static/css/login.css">
-<script>
+<!--<script>
 	var login_js ="static/js/login.js";
 	$.getScript(login_js);
-</script>
-<div class="login-page">
-  <div class="form">
-    <form class="register-form">
-      <input type="text" placeholder="login"/>
-      <input type="password" placeholder="password"/>
-      <input type="text" placeholder="email address"/>
-      <button>create</button>
-      <p class="message">Already registered? <a href="#">Sign In</a></p>
-    </form>
-    <form class="login-form">
-      <input type="text" placeholder="username"/>
-      <input type="password" placeholder="password"/>
-      <button>login</button>
-      <p class="message">Not registered? <a href="#">Create an account</a></p>
-    </form>
-  </div>
-</div>
+</script>-->
+</head>
+<body>
+	<div class="login-page">
+	  <div class="form">
+		<form class="register-form">
+		  <input type="text" id="server" placeholder=''/>
+		  <button type="button" onclick="asticode.authentication.configure(document.getElementById('server').value)">configure</button>
+		  <p class="message">Server correctly configured? <a href="#">Sign In</a></p>
+		</form>
+		<form class="login-form">
+		  <input name="user" id="user" type="text" placeholder="username"/>
+		  <input name="pass" id="pass" type="password" placeholder="password"/>
+		  <button type="button" onclick="asticode.authentication.login(document.getElementById('user').value,document.getElementById('pass').value)">login</button>
+		  <!--<button onclick="asticode.authentication.login($('#user').get(0).value,document.getElementById('pass').value)">login</button>-->
+		  <p class="message">Change server configuration? <a href="#">Configure Backend Server</a></p>
+		</form>
+	  </div>
+	</div>
+	<script src="static/js/login.js"></script>
+	<script type="text/javascript">login.init();</script>
+</body>

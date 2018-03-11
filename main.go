@@ -40,7 +40,7 @@ func main() {
 			AppIconDefaultPath: "resources/icon.png",
 		},
 		Debug:    *debug,
-		Homepage: "index.html",
+		Homepage: "login.html",
 		MenuOptions: []*astilectron.MenuItemOptions{{
 			Label: astilectron.PtrStr("File"),
 			SubMenu: []*astilectron.MenuItemOptions{

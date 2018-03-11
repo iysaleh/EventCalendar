@@ -13,7 +13,7 @@ let index = {
 		//asticode.calendar.init();
 		
 		//Load HTML Login Page to left panel.
-		$('#left').load("login.html");
+		//$('#left').load("login.html");
 		
 		// Wait for astilectron to be ready
         document.addEventListener('astilectron-ready', function() {

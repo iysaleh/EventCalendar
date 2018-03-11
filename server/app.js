@@ -7,6 +7,7 @@ const MongoClient = require('mongodb').MongoClient, assert=require('assert');
 const sUrl = 'mongodb://localhost:27017/EventCalendar';
 const dbName = 'EventCalendar';
 const Promise = require('promise');
+const crypto = require('crypto');
 
 
 /*const server = http.createServer((req, res) => {
@@ -15,13 +16,13 @@ const Promise = require('promise');
 	res.end('Hello World again\n');
 });*/
 
-function addEmployee (name,password) {
+function addEmployee (username,password) {
 	MongoClient.connect(sUrl, function(err, db){
 		var employees = db.collection('employees');
-		var query = {name:name}
+		var query = {username:username}
 		employees.find(query).toArray().then(function(result){
 			if (result.length === 0) {
-				employees.insert({name:name,password:password,isAdmin:false,startHour:"07:00:00",endHour:"19:00:00",meetings:[]});
+				employees.insert({username:username,password:password,isAdmin:false,startHour:"07:00:00",endHour:"19:00:00",meetings:[]});
 			}
 			db.close()
 		});
@@ -32,7 +33,7 @@ function getEmployeeList() {
 	return new Promise( function(resolve) {
 		MongoClient.connect(sUrl, function(err, db){
 			db.collection('employees').find().map(function(item){
-				return item.name;
+				return item.username;
 			}).toArray().then(function(result){
 				resolve(result);
 			});
@@ -40,15 +41,18 @@ function getEmployeeList() {
 	});
 }
 
-function login (name,password) {
+function login (username,password) {
 	return new Promise( function(resolve) {
 		MongoClient.connect(sUrl, function(err, db){
-			db.collection('employees').find({name:name, password:password}).map(function(item){
-				return {name:item.name, meetings:item.meetings};
+			db.collection('employees').find({username:username, password:password}).map(function(item){
+				return {username:item.username, meetings:item.meetings, notifications:item.notifications, sessionToken:item.sessionToken,fName:item.fName};
 			}).toArray().then(function(result){
-				if (result.name===name){
-					//Add login session token
-					
+				if (result.username===username){
+					//Generate login Session token if not exist
+					if (result.sessionToken===""){
+						result.sessionToken = randU32Sync();
+						addLoginSessionToken(result.username,result.sessionToken)
+					}
 				}
 				resolve(result);
 			});
@@ -56,9 +60,17 @@ function login (name,password) {
 	});
 }
 
-function addLoginSessionToken(name) {
-	
-	
+function addLoginSessionToken(username,sessionToken) {
+	MongoClient.connect(sUrl, function(err, db){
+		var employees = db.collection('employees');
+		var query = {username:username}
+		employees.find(query).toArray().then(function(result){
+			if (result.length === 1) {
+				employees.update({username:username},{$set:{sessionToken:sessionToken}});
+			}
+			db.close()
+		});
+	});	
 }
 
 function addRoom (roomNum,roomCapacity) {
@@ -103,6 +115,11 @@ function roomCapacity (roomNum) {
 				return "63 people";
 }
 
+//Helper functions
+function randU32Sync() {
+  return crypto.randomBytes(4).readUInt32BE(0, true);
+}
+
 var server = connect()
 		.use(function (req, res, next) {
 			var query;
@@ -112,11 +129,11 @@ var server = connect()
 			if (req.method === 'GET') {
 				switch (url_parts.pathname) {
 					case '/login':
-					console.log(query);
-					console.log(query.user);
-					//res.body = login(query);
-					res.setHeader('Content-Type', 'text/plain');
-					//res.end(res.body);
+					loginResult = login(query.user,query.pass);
+					res.body = JSON.stringify(loginResult);
+					res.setHeader('Content-Type', 'application/json');
+					res.type('application/json');
+					res.end(res.body);
 					break;
 					case '/roomCapacity':
 					res.body = roomCapacity(2);

@@ -12,6 +12,9 @@ let index = {
         asticode.notifier.init();
 		//asticode.calendar.init();
 		
+		if (window.isAdmin===true){
+			$('#left').load("admin_control_panel.html");
+		}
 		//Load HTML Login Page to left panel.
 		//$('#left').load("login.html");
 		

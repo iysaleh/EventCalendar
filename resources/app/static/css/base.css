@@ -8,15 +8,17 @@ html, body {
     height: 100%;
     margin: 0;
     width: 100%;
+	font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+	font-size: 14px;
 }
 
 .left {
-    background-color: #333;
-    color: #fff;
+	background: linear-gradient(to right, rgba(50,50,50,1), rgba(255,255,255,0));
+	background: #333;
     float: left;
     height: 100%;
     overflow: auto;
-    padding: 15px;
+    padding: 0px;
     width: 40%;
 }
 

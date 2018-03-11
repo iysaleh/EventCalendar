@@ -3,6 +3,9 @@ if (typeof asticode === "undefined") {
 	server = 'http://shadowhawk.ddns.net:3000';
 	calendar_events = [];
 	notifications = [];
+	isAdmin = false;
+	username = ""
+	sessionToken = ""
 }
 
 let login = {
@@ -29,6 +32,9 @@ asticode.authentication = {
 				else{
 					window.calendar_events = window.calendar_events.concat(responseData[0]['meetings']);
 					window.notifications = window.notifications.concat(responseData[0]['notifications']);
+					window.isAdmin = responseData[0]['isAdmin'];
+					window.sessionToken = responseData[0]['sessionToken'];
+					window.username = responseData[0]['username'];
 					$('body').load('index.html');
 					/*$(document).ready(function() {
 						window.alert(responseData[0]);

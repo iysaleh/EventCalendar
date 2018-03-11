@@ -1,0 +1,42 @@
+<script src="static/js/admin_control_panel.js"></script>
+<link rel="stylesheet" type="text/css" href="static/css/admin_control_panel.css">
+<!--http://www.htmldog.com/examples/dropdowns3/-->
+
+<body class="left_body">
+	<article>
+		<h1 id="left_header">Control Panel</h1>
+		<nav id="main_nav">
+			<ul>
+				<li>
+					<a onClick="admin_control_panel.loadPage('notifications.html');return false;">Notifications</a>
+				</li>
+				<li>
+					<a onClick="return false;">Employee</a>
+					<ul>
+						<li><a onClick="admin_control_panel.loadPage('addEmployee.html');return false;">Add Employee</a></li>
+						<li><a onClick="admin_control_panel.loadPage('deleteEmployee.html');return false;">Delete Employee</a></li>
+						<li><a onClick="admin_control_panel.loadPage('manageEmployee.html');return false;">Manage Employee</a></li>
+					</ul>
+				</li>
+				<li>
+					<a onClick="return false;">Room</a>
+					<ul>
+						<li><a onClick="admin_control_panel.loadPage('createRoom.html');return false;">Create Room</a></li>
+						<li><a onClick="admin_control_panel.loadPage('deleteRoom.html');return false;">Delete Room</a></li>
+						<li><a onClick="admin_control_panel.loadPage('manageRoom.html');return false;">Manage Room</a></li>
+					</ul>
+				</li>
+				<li>
+					<a onClick="return false;">Meeting</a>
+					<ul>
+						<li><a onClick="admin_control_panel.loadPage('createMeeting.html');return false;">Create Meeting</a></li>
+						<li><a onClick="admin_control_panel.loadPage('deleteMeeting.html');return false;">Delete Meeting</a></li>
+						<li><a onClick="admin_control_panel.loadPage('manageMeeting.html');return false;">Manage Meeting</a></li>
+					</ul>
+				</li>
+			</ul>
+		</nav>
+		<section id="main_content">
+		</section>
+	</article>
+</body>

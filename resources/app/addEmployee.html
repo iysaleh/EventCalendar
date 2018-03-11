@@ -1,0 +1,19 @@
+<form class="control-panel-form" id="add-employee-form">
+	<input id="addEmpUser" type="text" placeholder="username"/>
+	<input id="addEmpPass" type="password" placeholder="password"/>
+	<input id="addEmpFirstName" type="text" placeholder="first name"/>
+	<input id="addEmpMiddleName" type="text" placeholder="middle name"/>
+	<input id="addEmpLastName" type="text" placeholder="last name"/>
+	<select class="classic" id="addEmpIsAdmin">
+		<option value=false>isAdmin: False</option>
+		<option value=true>isAdmin: True</option>
+	</select>
+	<button type="button" onclick="admin_control_panel.addEmployee(
+									document.getElementById('addEmpUser').value,
+									document.getElementById('addEmpPass').value,
+									document.getElementById('addEmpFirstName').value,
+									document.getElementById('addEmpMiddleName').value,
+									document.getElementById('addEmpLastName').value,
+									document.getElementById('addEmpIsAdmin').value);">Add Employee
+	</button>
+</form>

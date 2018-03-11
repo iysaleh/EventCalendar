@@ -1,0 +1,43 @@
+<script src="static/js/admin_control_panel.js"></script>
+<link rel="stylesheet" type="text/css" href="static/css/admin_control_panel.css">
+
+ <!-- Tab links -->
+<div class="tab">
+  <button class="tablinks" onclick="selectControl(event, 'CreateEmployee')">CreateEmployee</button>
+  <button class="tablinks" onclick="selectControl(event, 'CreateRoom')">CreateRoom</button>
+  <button class="tablinks" onclick="selectControl(event, 'CreateMeeting')">CreateMeeting</button>
+  <button class="tablinks" onclick="selectControl(event, 'DeleteEmployee')">DeleteEmployee</button>
+  <button class="tablinks" onclick="selectControl(event, 'DeleteRoom')">DeleteRoom</button>
+  <button class="tablinks" onclick="selectControl(event, 'DeleteMeeting')">DeleteMeeting</button>
+</div>
+
+<!-- Tab content -->
+<div id="CreateEmployee" class="tabcontent">
+  <h3>CreateEmployee</h3>
+  <p>Page to create Employee.</p>
+</div>
+
+<div id="CreateRoom" class="tabcontent">
+  <h3>CreateRoom</h3>
+  <p>Paris is the capital of France.</p>
+</div>
+
+<div id="CreateMeeting" class="tabcontent">
+  <h3>CreateMeeting</h3>
+  <p>Tokyo is the capital of Japan.</p>
+</div>
+
+<div id="DeleteEmployee" class="tabcontent">
+  <h3>DeleteEmployee</h3>
+  <p>London is the capital city of England.</p>
+</div>
+
+<div id="DeleteRoom" class="tabcontent">
+  <h3>DeleteRoom</h3>
+  <p>Paris is the capital of France.</p>
+</div>
+
+<div id="DeleteMeeting" class="tabcontent">
+  <h3>DeleteMeeting</h3>
+  <p>Tokyo is the capital of Japan.</p>
+</div>

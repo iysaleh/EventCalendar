@@ -1,0 +1,22 @@
+<script src="static/js/admin_control_panel.js"></script>
+<link rel="stylesheet" type="text/css" href="static/css/admin_control_panel.css">
+
+<ul id="navigation">
+<li><a href="#"><span>Home</span></a></li>
+<li><a href="#"><span>About</span></a>
+<ul>
+<li><a href="#">My Qualifications</a></li>
+<li><a href="#">My Personal Details</a></li>
+</ul>
+</li>
+<li><a href="#"><span>Services</span></a>
+<ul>
+<li><a href="#">HTML</a></li>
+<li><a href="#">CSS</a></li>
+<li><a href="#">Accessibility</a></li>
+</ul>
+</li>
+<li><a href="#"><span>Portfolio</span></a></li>
+<li><a href="#"><span>Contact</span></a></li>
+<li><a href="#"><span>Links</span></a></li>
+</ul>

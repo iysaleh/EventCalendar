@@ -1,0 +1,55 @@
+* {
+padding: 0;
+margin: 0;
+}
+#navigation {
+overflow: auto;
+}
+#navigation li {
+float: left;
+list-style: none;
+background-color: #666; /* to cater for users without images */
+}
+#navigation a {
+display: block;
+background-image: url(../images/tabright.gif);
+background-position: top right;
+background-repeat: no-repeat;
+color: #FFF;
+text-decoration: none;
+font-weight: bold;*/
+}
+#navigation span {
+display: block;
+background-image: url(../images/tableft.gif);
+background-repeat: no-repeat;
+padding: 5px 15px;
+}
+#navigation a:hover {
+background-position: right -198px;
+}
+#navigation a:hover span {
+background-position: 0 -198px;
+}
+
+#navigation li ul {
+position: absolute;
+width: 10em;
+left: -999em;
+margin-left: 2px;
+font-size: 90%;
+}
+
+#navigation li ul a, #navigation li ul a:link {
+background-image: none;
+padding: 5px;
+width: 10em;
+background-color: #666;
+}
+#navigation li ul a:hover {
+background-color: #333;
+}
+
+#navigation li:hover ul, #navigation li.sfhover ul {
+left: auto;
+}

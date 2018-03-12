@@ -8,6 +8,10 @@ let admin_control_panel = {
 			$('#main_content').load(page);
 			admin_control_panel.loadRoomsList("deleteRoomsSelect");
 		}
+		else if (page==='createMeeting.html'){
+			$('#main_content').load(page);
+			admin_control_panel.loadEmployeeList("createMeetingSelectEmp");
+		}
 		else{
 			$('#main_content').load(page);
 		}
@@ -230,5 +234,8 @@ let admin_control_panel = {
 				}
 			}
 		});
+	},
+	createMeetingLockEmployees: function(meetingTitle,meetingDesc,meetingEmployees){
+		
 	}
 };

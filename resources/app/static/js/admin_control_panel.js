@@ -11,6 +11,7 @@ let admin_control_panel = {
 		else if (page==='createMeeting.html'){
 			$('#main_content').load(page);
 			admin_control_panel.loadEmployeeList("createMeetingSelectEmp");
+			admin_control_panel.loadRoomsList("createMeetingSelectRoom");
 		}
 		else{
 			$('#main_content').load(page);
@@ -101,7 +102,7 @@ let admin_control_panel = {
 				},
 				tryCount : 0,
 				retryLimit : 3,
-				timeout:10000,
+				timeout:2000,
 				success: function(responseData,responseStatus,responseXHR){
 					//window.alert(responseData[0]['username']);
 					if ( responseData.length === 0){
@@ -140,7 +141,7 @@ let admin_control_panel = {
 				},
 				tryCount : 0,
 				retryLimit : 3,
-				timeout:10000,
+				timeout:2000,
 				success: function(responseData,responseStatus,responseXHR){
 					//window.alert(responseData[0]['username']);
 					if ( responseData.length === 0){
@@ -235,7 +236,56 @@ let admin_control_panel = {
 			}
 		});
 	},
-	createMeetingLockEmployees: function(meetingTitle,meetingDesc,meetingEmployees){
+	suggestMeetingTimeAndRoom: function(meetingEmployees){
 		
+	},
+	createMeetingLockEmployees: function(meetingTitle,meetingDesc,meetingEmployeesSelector){
+		$('#create-meeting-select-rooms').show( "slow" );
+	},
+	verifyMeetingConfiguration: function(meetingTitle,meetingDesc,meetingEmployeesSelector,room,startTime,endTime,buttonSelectorId){
+		$("#"+buttonSelectorId).attr("disabled", "disabled");
+		$.ajax({
+			method: 'POST',
+			url: window.server + '/verifyMeeting',
+			data: {
+				requesterUser:window.username,
+				requesterToken:window.sessionToken,
+				meetingTitle:meetingTitle,
+				meetingDesc:meetingDesc,
+				meetingEmployees:$('#'+meetingEmployeesSelector).val(),
+				room:room,
+				startTime:startTime,
+				endTime:endTime
+			},
+			tryCount : 0,
+			retryLimit : 3,
+			timeout:5000,
+			datamethod:'json',
+			success: function(responseData,responseStatus,responseXHR){
+				//window.alert(responseData[0]['username']);
+				if ( responseData.length === 0){
+					window.alert("Meeting Verification Failed!","METTING VERIFICATION FAILURE");
+				}
+			},
+			error: function(xhr, textStatus){
+				if(textStatus === 'timeout'){
+					console.log("Failed from timeout");
+					if (this.tryCount <= this.retryLimit) {
+						this.tryCount += 1;
+						$.ajax(this);
+						return;
+					}
+				}
+				else{
+					window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");
+				}
+			},
+			complete: function(){
+				$("#"+buttonSelectorId).removeAttr("disabled");
+			}
+		});
+	},
+	createMeeting: function(meetingTitle,meetingDesc,meetingEmployees,room,startTime,endTime){
+		$('#create-meeting-select-rooms').show( "slow" );
 	}
 };

@@ -122,6 +122,12 @@ function deleteRoom (requesterUser,requesterToken,roomNumber) {
 	});
 }
 
+function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,meetingEmployees,room,startTime,endTime){
+	return new Promise( function(resolve) {
+		resolve("MEETING VERIFIED");
+	});
+}
+
 function _verifyRequesterUserToken(requesterUser,requesterToken){
 	return new Promise( function(resolve) {
 		requesterToken = parseInt(requesterToken);
@@ -293,6 +299,13 @@ rootRouter.post('/deleteEmployee',function(req,res,next){
 
 rootRouter.post('/deleteRoom',function(req,res,next){
 	deleteRoom(req.body.requesterUser,req.body.requesterToken,req.body.roomNumber).then(function(result){
+		res.json(result);
+		res.end();
+	});
+});
+
+rootRouter.post('/verifyMeeting',function(req,res,next){
+	verifyMeeting(req.body.requesterUser,req.body.requesterToken,req.body.meetingTitle,req.body.meetingDesc,req.body.meetingEmployees,req.body.room,req.body.startTime,req.body.endTime).then(function(result){
 		res.json(result);
 		res.end();
 	});

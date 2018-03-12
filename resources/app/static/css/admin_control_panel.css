@@ -7,6 +7,7 @@
 	font: 300 15px/1.5 "Helvetica Neue", helvetica, arial, sans-serif;
 	background: #333;
 	margin: 15px;
+	display: flex;
 }
 
 article {
@@ -100,13 +101,12 @@ a {
 	opacity: 1;
 }
 
-
 .control-panel-form{
   position: relative;
   z-index: 1;
   background: #FFFFFF;
   max-width: 400px;
-  margin: 0 auto 100px;
+  margin: 0 auto 35px;
   padding: 45px;
   text-align: center;
   box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
@@ -130,11 +130,17 @@ a {
   width: 100%;
   border: 0;
   padding: 15px;
+  margin: 10px 0px;
   color: #FFFFFF;
   font-size: 14px;
   -webkit-transition: all 0.3 ease;
   transition: all 0.3 ease;
   cursor: pointer;
+}
+
+.control-panel-form button:disabled{
+  color:white;
+  background-color: darkgrey;
 }
 
 .control-panel-form label{

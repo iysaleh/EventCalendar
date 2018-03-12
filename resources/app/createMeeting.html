@@ -1,11 +1,45 @@
-<form class="control-panel-form" id="create-meeting-form">
-	<input id="createMeetingTitle" type="text" placeholder="Meeting Title"/>
-	<input id="createMeetingDescription" type="text" placeholder="Meeting Description"/>
-	<label for="createMeetingSelectEmp">Select employees to invite to Meeting. (hold shift to select more than one):</label>
-	<<select multiple class="form-control" id="createMeetingSelectEmp"></select>
-	<button type="button" onclick="admin_control_panel.createMeetingLockEmployees(
-									document.getElementById('createMeetingTitle').value,
-									document.getElementById('createMeetingDescription').value,
-									document.getElementById('createMeetingSelectEmp').value);">Select Meeting Room
-	</button>
-</form>
+<link rel="stylesheet" type="text/css" href="static/css/jquery.datetimepicker.css"/ >
+<script src="static/js/jquery.datetimepicker.full.js"></script>
+<script src="static/js/moment.js"></script>
+<div id='create-meeting-select-employees'>
+	<form class="control-panel-form" id="create-meeting-form">
+		<label for="createMeetingTitle">Meeting Title:</label>
+		<input id="createMeetingTitle" type="text" placeholder="Meeting Title"/>
+		<label for="createMeetingDescription">Meeting Description:</label>
+		<input id="createMeetingDescription" type="text" placeholder="Meeting Description"/>
+		<label for="createMeetingSelectEmp">Select employees to invite to Meeting. (hold ctrl to select more than one):</label>
+		<select multiple class="form-control" id="createMeetingSelectEmp"></select>
+		
+		<button type="button" onclick="admin_control_panel.createMeetingLockEmployees(
+										document.getElementById('createMeetingTitle').value,
+										document.getElementById('createMeetingDescription').value,
+										'createMeetingSelectEmp');">Select Meeting Room
+		</button>
+	</form>
+</div>
+<div id='create-meeting-select-rooms' style="display: none;" >
+	<form class="control-panel-form" id="create-meeting-select-room-form">
+		<label for="createMeeting-datetimepicker-startMeeting">Input Meeting Start Time:</label>
+		<input id="createMeeting-datetimepicker-startMeeting" type="text" placeholder="Meeting Start Time" >
+		<label for="createMeeting-datetimepicker-endMeeting">Input Meeting End Time:</label>
+		<input id="createMeeting-datetimepicker-endMeeting" type="text" placeholder="Meeting End Time" >
+		<label for="createMeetingSelectRoom">Select room to hold the Meeting:</label>
+		<select class="form-control" id="createMeetingSelectRoom"></select>
+		<button type="button" id="createMeetingVerifyButton" onclick="admin_control_panel.verifyMeetingConfiguration(
+														document.getElementById('createMeetingTitle').value,
+														document.getElementById('createMeetingDescription').value,
+														document.getElementById('createMeetingSelectEmp').value,
+														document.getElementById('createMeetingSelectRoom').value,
+														document.getElementById('createMeeting-datetimepicker-startMeeting').value,
+														document.getElementById('createMeeting-datetimepicker-endMeeting').value,
+														'createMeetingVerifyButton');">Verify Meeting Configuration</button>
+		<button type="button" id="createMeetingCreateButton" onclick="admin_control_panel.createMeeting(
+														document.getElementById('createMeetingTitle').value,
+														document.getElementById('createMeetingDescription').value,
+														document.getElementById('createMeetingSelectEmp').value,
+														document.getElementById('createMeetingSelectRoom').value,
+														document.getElementById('createMeeting-datetimepicker-startMeeting').value,
+														document.getElementById('createMeeting-datetimepicker-endMeeting').value);">Create Meeting</button>
+		<script>$.datetimepicker.setDateFormatter('moment');jQuery('#createMeeting-datetimepicker-startMeeting').datetimepicker();jQuery('#createMeeting-datetimepicker-endMeeting').datetimepicker();</script>
+	</form>
+</div>

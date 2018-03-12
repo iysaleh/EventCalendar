@@ -30,11 +30,11 @@ asticode.authentication = {
 					window.alert("Bad Login Attempt.","LOGIN FAILURE");
 				}
 				else{
-					window.calendar_events = window.calendar_events.concat(responseData[0]['meetings']);
-					window.notifications = window.notifications.concat(responseData[0]['notifications']);
-					window.isAdmin = responseData[0]['isAdmin'];
-					window.sessionToken = responseData[0]['sessionToken'];
-					window.username = responseData[0]['username'];
+					window.calendar_events = window.calendar_events.concat(responseData['meetings']);
+					window.notifications = window.notifications.concat(responseData['notifications']);
+					window.isAdmin = responseData['isAdmin'];
+					window.sessionToken = responseData['sessionToken'];
+					window.username = responseData['username'];
 					$('body').load('index.html');
 					/*$(document).ready(function() {
 						window.alert(responseData[0]);

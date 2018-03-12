@@ -242,7 +242,7 @@ let admin_control_panel = {
 	createMeetingLockEmployees: function(meetingTitle,meetingDesc,meetingEmployeesSelector){
 		$('#create-meeting-select-rooms').show( "slow" );
 	},
-	verifyMeetingConfiguration: function(meetingTitle,meetingDesc,meetingEmployees,room,startTime,endTime,buttonSelectorId){
+	verifyMeetingConfiguration: function(meetingTitle,meetingDesc,meetingEmployeesSelector,room,startTime,endTime,buttonSelectorId){
 		$("#"+buttonSelectorId).attr("disabled", "disabled");
 		$.ajax({
 			method: 'POST',
@@ -252,29 +252,29 @@ let admin_control_panel = {
 				requesterToken:window.sessionToken,
 				meetingTitle:meetingTitle,
 				meetingDesc:meetingDesc,
-				meetingEmployees:meetingEmployees,
+				meetingEmployees:$('#'+meetingEmployeesSelector).val(),
 				room:room,
 				startTime:startTime,
 				endTime:endTime
 			},
-			timeout:3000,
+			tryCount : 0,
+			retryLimit : 3,
+			timeout:5000,
 			datamethod:'json',
 			success: function(responseData,responseStatus,responseXHR){
 				//window.alert(responseData[0]['username']);
 				if ( responseData.length === 0){
-					window.alert("Delete User Failed!","USER DELETE FAILURE");
-				}
-				else if ( responseData==='USER_DELETE_SUCCESS' ){
-					window.alert("User account '" + user + "' successfully deleted!","USER DELETE SUCCESS");
-					$('#del-emp-list-'+user).remove();
-				}
-				else if ( responseData==='BAD_CREDENTIALS' ){
-					window.alert("Bad credentials detected! Are you an Administrator?","USER DELETE FAILURE");
+					window.alert("Meeting Verification Failed!","METTING VERIFICATION FAILURE");
 				}
 			},
 			error: function(xhr, textStatus){
 				if(textStatus === 'timeout'){
 					console.log("Failed from timeout");
+					if (this.tryCount <= this.retryLimit) {
+						this.tryCount += 1;
+						$.ajax(this);
+						return;
+					}
 				}
 				else{
 					window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");

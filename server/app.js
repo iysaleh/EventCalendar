@@ -11,7 +11,7 @@ const crypto = require('crypto');
 var express = require('express');
 var app = express();
 const bodyParser = require('body-parser');
-
+const moment = require('moment');
 
 /*const server = http.createServer((req, res) => {
 	res.statusCode = 200;
@@ -124,8 +124,71 @@ function deleteRoom (requesterUser,requesterToken,roomNumber) {
 
 function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,meetingEmployees,room,startTime,endTime){
 	return new Promise( function(resolve) {
-		resolve("MEETING VERIFIED");
+		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(verResult){
+			if (verResult.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				arrayOfMeetingArrays = [];
+				//Get meetings for room
+				arrayOfMeetingArrays.push(_getMeetingsForRoom(roomNumber));			
+				//Get all meeting stores for all users
+				for (let i = 0; i < meetingEmployees.length; i++){
+					arrayOfMeetingArrays.push(_getMeetingsForEmployee(meetingEmployees[i]));
+				}
+				Promise.all(arrayOfMeetingArrays).then(function(result){
+					arrayOfViolations = []
+					console.log("MEETING!");
+					console.log(result);
+					//For each user's meeting array
+					for (let i = 0; i < result.length;i++){
+						//For each meeting
+						for (let y = 0; y < result[i].length;y++){
+							curMeetingStart = result[i][y].start;
+							//Currently don't support comparison with infinitely repeating meetings.
+							curMeetingEnd = result[i][y].end;
+							console.log(curMeetingStart);
+						}
+					}
+					//Check if conflict with startTime and endTime of room -- If Yes, Return FAIL!
+					//Check if conflict with startTime and endTime of any users -- if Yes, return list of who has conflict
+				});
+			}
+		});
 	});
+}
+
+function getMeetingsForEmployee(requesterUser,requesterToken,employeeName){
+	return new Promise( function(resolve) {
+		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(){
+			resolve(_getMeetingsForEmployee(employeeName));
+		});
+	});	
+}
+
+function _getMeetingsForEmployee(employeeName){
+	return new Promise( function(resolve) {
+		MongoClient.connect(sUrl, function(err, db){
+			db.collection('employees').find({username:employeeName}).map(function(item){
+				return {meetings:meetings};
+			}).toArray().then(function(result){
+				resolve(result[0]);
+				db.close();
+			});
+		});
+	});	
+}
+
+function getMeetingsForRoom(requesterUser,requesterToken,roomNumber){
+	return new Promise( function(resolve) {
+		
+	});	
+}
+
+function _getMeetingsForRoom(roomNumber){
+	return new Promise( function(resolve) {
+		
+	});	
 }
 
 function _verifyRequesterUserToken(requesterUser,requesterToken){

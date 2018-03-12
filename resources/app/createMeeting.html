@@ -1,0 +1,11 @@
+<form class="control-panel-form" id="create-meeting-form">
+	<input id="createMeetingTitle" type="text" placeholder="Meeting Title"/>
+	<input id="createMeetingDescription" type="text" placeholder="Meeting Description"/>
+	<label for="createMeetingSelectEmp">Select employees to invite to Meeting. (hold shift to select more than one):</label>
+	<<select multiple class="form-control" id="createMeetingSelectEmp"></select>
+	<button type="button" onclick="admin_control_panel.createMeetingLockEmployees(
+									document.getElementById('createMeetingTitle').value,
+									document.getElementById('createMeetingDescription').value,
+									document.getElementById('createMeetingSelectEmp').value);">Select Meeting Room
+	</button>
+</form>

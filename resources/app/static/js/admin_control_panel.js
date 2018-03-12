@@ -250,6 +250,7 @@ let admin_control_panel = {
 			data: {
 				requesterUser:window.username,
 				requesterToken:window.sessionToken,
+				meetingOwner:window.username,
 				meetingTitle:meetingTitle,
 				meetingDesc:meetingDesc,
 				meetingEmployees:$('#'+meetingEmployeesSelector).val(),

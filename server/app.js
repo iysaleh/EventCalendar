@@ -8,6 +8,9 @@ const sUrl = 'mongodb://localhost:27017/EventCalendar';
 const dbName = 'EventCalendar';
 const Promise = require('promise');
 const crypto = require('crypto');
+var express = require('express');
+var app = express();
+const bodyParser = require('body-parser');
 
 
 /*const server = http.createServer((req, res) => {
@@ -45,11 +48,40 @@ function addEmployee (requesterUser,requesterToken,username,password,fname,mname
 	});
 }
 
+function addRoom (requesterUser,requesterToken,roomNumber,roomCapacity) {
+	verify = _verifyRequesterUserToken(requesterUser,requesterToken);
+	return new Promise( function(resolve) {
+		Promise.all([verify]).then(function(result){
+			if (result.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				MongoClient.connect(sUrl, function(err, db){
+					var rooms = db.collection('rooms');
+					var query = {roomNumber:roomNumber};
+					rooms.find(query).toArray().then(function(result){
+						console.log("RESULT:");
+						console.log(result);
+						if (result.length === 0) {
+							rooms.insert({roomNumber:roomNumber,roomCapacity:roomCapacity,meetings:[]});
+							resolve("ROOM_ADD_SUCCESS")
+							db.close()
+						}
+						else{
+							resolve("ROOM_ALREADY_EXISTS");
+							db.close()
+						}
+					});
+				});
+			}
+		});
+	});
+}
+
 function deleteEmployee (requesterUser,requesterToken,username) {
 	console.log(requesterUser);
 	console.log(requesterToken);
 	verify = _verifyRequesterUserToken(requesterUser,requesterToken);
-	console.log("HELLOOOOO");
 	return new Promise( function(resolve) {
 		Promise.all([verify]).then(function(result){
 			console.log(result);
@@ -64,6 +96,25 @@ function deleteEmployee (requesterUser,requesterToken,username) {
 					console.log('SENDING DELETE');
 					employees.remove({username:username});
 					resolve("USER_DELETE_SUCCESS");
+					db.close();
+				});
+			}
+		});
+	});
+}
+
+function deleteRoom (requesterUser,requesterToken,roomNumber) {
+	verify = _verifyRequesterUserToken(requesterUser,requesterToken);
+	return new Promise( function(resolve) {
+		Promise.all([verify]).then(function(result){
+			if (result.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				MongoClient.connect(sUrl, function(err, db){
+					var rooms = db.collection('rooms');
+					rooms.remove({roomNumber:roomNumber});
+					resolve("ROOM_DELETE_SUCCESS");
 					db.close();
 				});
 			}
@@ -118,6 +169,26 @@ function getEmployeeList(requesterUser,requesterToken) {
 	});
 }
 
+function getRoomsList(requesterUser,requesterToken) {
+	verify = _verifyRequesterUserToken(requesterUser,requesterToken);
+	return new Promise( function(resolve) {
+		Promise.all([verify]).then(function(result){
+			if (result.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				MongoClient.connect(sUrl, function(err, db){
+					db.collection('rooms').find().map(function(item){
+						return item.roomNumber;
+					}).toArray().then(function(result){
+						resolve(result);
+					});
+				});				
+			}
+		});
+	});
+}
+
 function login (username,password) {
 	return new Promise( function(resolve) {
 		MongoClient.connect(sUrl, function(err, db){
@@ -150,37 +221,7 @@ function addLoginSessionToken(username,sessionToken) {
 	});	
 }
 
-function addRoom (roomNum,roomCapacity) {
-		MongoClient.connect(sUrl, function(err, db) {
-			var room=db.collection('rooms');
-			room.insert({roomNum:roomNum},{roomCapacity:roomCapacity});
-						db.close();
-		});
-};
 
-function addMeeting (ownerMeeting,startTime,endTime,roomNum,subject,description) {
-		MongoClient.connect(sUrl, function(err, db) {
-			var meeting=db.collection('meetings');
-			meeting.insert({ownerMeeting:ownerMeeting},{startTime:startTime},{endTime:endTime},{roomNum:roomNum},{subject:subject},{description:description});
-						db.close();
-				});
-};
-
-function deleteRoom (roomNum) {
-		MongoClient.connect(sUrl, function(err, db) {
-			var room=db.collection('rooms');
-			room.remove({roomNum:roomNum},{roomCapacity:roomCapacity} );
-						db.close();
-		});
-};
-
-function deleteMeeting (ownerMeeting,startTime,endTime,roomNum,subject,description) {
-		MongoClient.connect(sUrl, function(err, db) {
-			var meeting=db.collection('meetings');
-			meeting.remove({ownerMeeting:ownerMeeting},{startTime:startTime},{endTime:endTime},{roomNum:roomNum},{subject:subject},{description:description});
-						db.close();
-				});
-};
 
 function roomCapacity (roomNum) {
 		console.log('FINDING ROOM');
@@ -197,72 +238,67 @@ function randU32Sync() {
   return crypto.randomBytes(4).readUInt32BE(0, true);
 }
 
-var server = connect()
-		.use(function (req, res, next) {
-			var query;
-			var url_parts = url.parse(req.url, true);
-			query = url_parts.query;
-			console.log(query);
+function logger(req,res,next){
+  console.log(new Date(), req.method, req.url, req.query, req.body);
+  next();
+}
 
-			if (req.method === 'GET') {
-				switch (url_parts.pathname) {
-					case '/login':
-					loginResult = login(query.user,query.pass);
-					Promise.all([loginResult]).then(function(result){
-						res.body = JSON.stringify(result[0]);
-						res.setHeader('Content-Type', 'application/json');
-						res.end(res.body);
-					});
-					break;
-					case '/roomCapacity':
-					res.body = roomCapacity(2);
-					res.setHeader('Content-Type', 'text/plain');
-					res.end(res.body);
-					console.log(query);
-					break;
-					case '/getEmployeeList':
-					getEmployeeList(query.requesterUser,query.requesterToken).then(function(result){
-						res.body = JSON.stringify(result);
-						res.setHeader('Content-Type', 'application/json');
-						res.end(res.body);
-					});
-					break;
-				}
-			} else if (req.method === 'POST') {
-				switch (url_parts.pathname) {
-					case '/addEmployee':
-					addEmployeeResult = addEmployee(query.requesterUser,query.requesterToken,query.user,query.pass,query.fname,query.mname,query.lname,query.isAdmin)
-					console.log("WHY ARE YOU STUCK");
-					Promise.all([addEmployeeResult]).then(function(result){
-						console.log("IN THE PROMISE");
-						res.body = result[0];
-						console.log(res.body);
-						res.setHeader('Content-Type', 'text/plain');
-						res.end(res.body);
-					});
-					break;
-					case '/deleteEmployee':
-					console.log(query);
-					deleteEmployeeResult = deleteEmployee(query.requesterUser,query.requesterToken,query.username)
-					
-					Promise.all([deleteEmployeeResult]).then(function(result){
-						console.log("RESULT: RESULT");
-						res.body=result[0];
-						console.log(res.body);
-						res.setHeader('Content-Type', 'text/plain');
-						res.end(res.body);
-					});
-					break;
-				}
-			} else {
-				console.log('NOT GET OR POST');
-			}
-		}).listen(port, hostname, () => {
-			console.log(`Server running at http://${hostname}:${port}/`);
-		});
+var app = express();
+var rootRouter = express.Router();
+app.use(bodyParser.urlencoded({ extended: true }));
+rootRouter.use(logger);
 
-/*
-server.listen(port, hostname, () => {
-	console.log(`Server running at http://${hostname}:${port}/`);
-	addEmployee("test3","test3",);
-});*/
+rootRouter.get('/login',function(req,res,next){
+	login(req.query.user,req.query.pass).then(function(result){
+		res.json(result[0]);
+		res.end();
+	});
+});
+
+rootRouter.get('/getEmployeeList',function(req,res,next){
+	getEmployeeList(req.query.requesterUser,req.query.requesterToken).then(function(result){
+		res.json(result);
+		res.end();
+	});
+});
+
+rootRouter.get('/getRoomsList',function(req,res,next){
+	getRoomsList(req.query.requesterUser,req.query.requesterToken).then(function(result){
+		res.json(result);
+		res.end();
+	});
+});
+
+rootRouter.post('/addEmployee',function(req,res,next){
+	addEmployee(req.body.requesterUser,req.body.requesterToken,req.body.user,req.body.pass,req.body.fname,req.body.mname,req.body.lname,req.body.isAdmin).then(function(result){
+		res.json(result);
+		res.end();
+	});
+});
+
+rootRouter.post('/addRoom',function(req,res,next){
+	console.log(req.query);
+	addRoom(req.body.requesterUser,req.body.requesterToken,req.body.roomNumber,req.body.roomCapacity).then(function(result){
+		res.json(result);
+		res.end();
+	});
+});
+
+rootRouter.post('/deleteEmployee',function(req,res,next){
+	deleteEmployee(req.body.requesterUser,req.body.requesterToken,req.body.username).then(function(result){
+		res.json(result);
+		res.end();
+	});
+});
+
+rootRouter.post('/deleteRoom',function(req,res,next){
+	deleteRoom(req.body.requesterUser,req.body.requesterToken,req.body.roomNumber).then(function(result){
+		res.json(result);
+		res.end();
+	});
+});
+
+app.use('/',rootRouter);
+app.listen(3000);
+console.log("Server Started on port 3000.");
+

@@ -119,12 +119,32 @@ function deleteRoom (requesterUser,requesterToken,roomNumber) {
 	});
 }
 
+/*TODOTODOTODO*/
+function deleteMeeting (requesterUser,requesterToken,roomNumber) {
+	verify = _verifyRequesterUserToken(requesterUser,requesterToken);
+	return new Promise( function(resolve) {
+		Promise.all([verify]).then(function(result){
+			if (result.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				MongoClient.connect(sUrl, function(err, db){
+					var rooms = db.collection('rooms');
+					rooms.remove({roomNumber:roomNumber});
+					resolve("ROOM_DELETE_SUCCESS");
+					db.close();
+				});
+			}
+		});
+	});
+}
+
 function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,meetingEmployees,roomNumber,meetingStartTime,meetingEndTime){
 	return new Promise( function(resolve) {
 		meetingStartHour = moment(meetingStartTime.slice(-5),'HH:mm');
 		meetingEndHour = moment(meetingEndTime.slice(-5),'HH:mm');
-		meetingStartTime = moment(meetingStartTime,'YYYY/MM/DD HH:mm').valueOf();
-		meetingEndTime = moment(meetingEndTime,'YYYY/MM/DD HH:mm').valueOf();
+		meetingStartTime = moment(meetingStartTime,'YYYY/MM/DD HH:mm');
+		meetingEndTime = moment(meetingEndTime,'YYYY/MM/DD HH:mm');
 		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(verResult){
 			if (verResult.length===0){
 				resolve("BAD_CREDENTIALS");
@@ -145,8 +165,8 @@ function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,mee
 						var meetingObj = result[i].meetings;
 						if (i === 0){ //Room Verification logic
 							for (let y = 0; y < meetingObj.length;y++){
-								var roomMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm').valueOf();
-								var roomMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm').valueOf();
+								var roomMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm');
+								var roomMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm');
 								if (_meetingsHaveConflict(meetingStartTime,meetingEndTime,roomMeetingStart,roomMeetingEnd)){
 									resolve('ROOM_MEETING_CONFLICT');
 								}
@@ -156,14 +176,14 @@ function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,mee
 							//Check employee working hours conflict
 							empScheduleStart = moment(result[i].scheduleBegin,'HH:mm');
 							empScheduleEnd = moment(result[i].scheduleEnd,'HH:mm');
-							if (meetingStartHour < empScheduleStart || meetingEndHour > empScheduleEnd){
+							if (meetingStartHour.valueOf() < empScheduleStart.valueOf() || meetingEndHour.valueOf() > empScheduleEnd.valueOf()){
 								arrayOfViolations.push(result[i].username);
 								continue;
 							}
 							//Check employee meeting conflicts
 							for (let y = 0; y < meetingObj.length;y++){
-								var empMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm').valueOf();
-								var empMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm').valueOf();
+								var empMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm');
+								var empMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm');
 								if (_meetingsHaveConflict(meetingStartTime,meetingEndTime,empMeetingStart,empMeetingEnd)){
 									arrayOfViolations.push(result[i].username);
 									break;
@@ -177,6 +197,99 @@ function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,mee
 					}
 					else{
 						resolve("MEETING_CONFLICTS_WITH:"+arrayOfViolations.join());
+					}
+				});
+			}
+		});
+	});
+}
+
+function createMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,meetingEmployees,roomNumber,meetingStartTime,meetingEndTime){
+	return new Promise( function(resolve) {
+		meetingStartTime = moment(meetingStartTime,'YYYY/MM/DD HH:mm');
+		meetingEndTime = moment(meetingEndTime,'YYYY/MM/DD HH:mm');
+		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(verResult){
+			if (verResult.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				Promise.all([_getMeetingsForRoom(roomNumber)]).then(function(result){
+					var meetingObj = result[0].meetings;
+					roomConflict = false;
+					for (let y = 0; y < meetingObj.length;y++){
+						var roomMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm');
+						var roomMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm');
+						if (_meetingsHaveConflict(meetingStartTime,meetingEndTime,roomMeetingStart,roomMeetingEnd)){
+							resolve({errorMessage:'ROOM_MEETING_CONFLICT'});
+							roomConflict = true;
+							break;
+						}
+					}
+					if (!roomConflict){//only add meetings if no room conflicts.
+						var meetingKey = randU32Sync();
+						var meetingCreationTime = moment();
+						var meetingForRoom = {start:meetingStartTime.format('YYYY/MM/DD HH:mm').toString(),
+										end:meetingEndTime.format('YYYY/MM/DD HH:mm').toString(),
+										creationTime:meetingCreationTime.format('YYYY/MM/DD HH:mm').toString(),
+										owner:requesterUser,
+										key:meetingKey,
+										title:meetingTitle,
+										description:meetingDesc,
+										roomNumber:roomNumber,
+										meetingEmployees:meetingEmployees,
+										status:"accepted",
+										eventColor:"blue"};
+						var meetingForOwner = {start:meetingStartTime.format('YYYY/MM/DD HH:mm').toString(),
+										end:meetingEndTime.format('YYYY/MM/DD HH:mm').toString(),
+										creationTime:meetingCreationTime.format('YYYY/MM/DD HH:mm').toString(),
+										owner:requesterUser,
+										key:meetingKey,
+										title:meetingTitle,
+										description:meetingDesc,
+										roomNumber:roomNumber,
+										meetingEmployees:meetingEmployees,
+										status:"accepted",
+										eventColor:"green"};
+						var meetingForInvitee = {start:meetingStartTime.format('YYYY/MM/DD HH:mm').toString(),
+										end:meetingEndTime.format('YYYY/MM/DD HH:mm').toString(),
+										creationTime:meetingCreationTime.format('YYYY/MM/DD HH:mm').toString(),
+										owner:requesterUser,
+										key:meetingKey,
+										title:meetingTitle,
+										description:meetingDesc,
+										roomNumber:roomNumber,
+										meetingEmployees:meetingEmployees,
+										status:"pending",
+										eventColor:"yellow"};
+						var notificationOwner = {creationTime:meetingCreationTime,
+										title:meetingTitle,
+										key:meetingKey,
+										message:"Meeting successfully created.",
+										type:"acknowledge",
+										creationTime:meetingCreationTime.format('YYYY/MM/DD HH:mm').toString()};
+						var notificationInvitee = {creationTime:meetingCreationTime,
+										title:meetingTitle,
+										key:meetingKey,
+										description:meetingDesc,
+										message:"You have been invited to a new meeting!",
+										type:"Respond",
+										creationTime:meetingCreationTime.format('YYYY/MM/DD HH:mm').toString()};
+						MongoClient.connect(sUrl, function(err, db){
+							//Add meeting to room meetings
+							db.collection('rooms').update({roomNumber:roomNumber},{$addToSet:{meetings:meetingForRoom}});
+							//Add meeting to employee meetings
+							for (let i = 0; i < meetingEmployees.length;i++){
+								if (requesterUser === meetingEmployees[i]){//meetingOwner
+									db.collection('employees').update({username:meetingEmployees[i]},{$addToSet:{meetings:meetingForOwner}});
+									db.collection('employees').update({username:meetingEmployees[i]},{$addToSet:{notifications:notificationOwner}});
+								}
+								else{//normal meeting invitee
+									db.collection('employees').update({username:meetingEmployees[i]},{$addToSet:{meetings:meetingForInvitee}});
+									db.collection('employees').update({username:meetingEmployees[i]},{$addToSet:{notifications:notificationInvitee}});
+								}
+							}
+							resolve({errorMessage:"",successMessage:"MEETING_SUCCESSFULLY_CREATED"});
+						});
 					}
 				});
 			}
@@ -415,6 +528,26 @@ function getRoomsList(requesterUser,requesterToken) {
 	});
 }
 
+function getMeetingsList(requesterUser,requesterToken,meetingsUser) {
+	verify = _verifyRequesterUserToken(requesterUser,requesterToken);
+	return new Promise( function(resolve) {
+		Promise.all([verify]).then(function(result){
+			if (result.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				MongoClient.connect(sUrl, function(err, db){
+					db.collection('employees').find({username:meetingsUser}).map(function(item){
+						return item.meetings;
+					}).toArray().then(function(result){
+						resolve(result[0]);
+					});
+				});				
+			}
+		});
+	});
+}
+
 function login (username,password) {
 	return new Promise( function(resolve) {
 		MongoClient.connect(sUrl, function(err, db){
@@ -447,17 +580,6 @@ function addLoginSessionToken(username,sessionToken) {
 	});	
 }
 
-
-
-function roomCapacity (roomNum) {
-		console.log('FINDING ROOM');
-		MongoClient.connect(sUrl, function(err, db) {
-			var room=db.collection('rooms');
-			room.find({roomNum:roomNum});
-						db.close();
-		});
-				return "63 people";
-}
 
 //Helper functions
 function randU32Sync() {
@@ -493,6 +615,20 @@ rootRouter.get('/getRoomsList',function(req,res,next){
 		res.status(200).json(result);
 		res.end();
 	});
+});
+
+rootRouter.get('/getMeetingsList',function(req,res,next){
+	if (!req.query.requesterUser || !req.query.requesterToken || !req.query.meetingsUser) {
+		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
+		res.end();
+	}
+	else{
+		getMeetingsList(req.query.requesterUser,req.query.requesterToken,req.query.meetingsUser).then(function(result){
+			console.log(result);
+			res.status(200).json(result);
+			res.end();
+		});
+	}
 });
 
 rootRouter.post('/addEmployee',function(req,res,next){
@@ -545,6 +681,20 @@ rootRouter.post('/suggestMeeting',function(req,res,next){
 	}
 	else{
 		suggestMeeting(req.body.requesterUser,req.body.requesterToken,req.body.meetingTitle,req.body.meetingDesc,req.body.meetingDuration,req.body.meetingEmployees).then(function(result){
+			console.log(result);
+			res.status(200).json(result);
+			res.end();
+		});
+	}
+});
+
+rootRouter.post('/createMeeting',function(req,res,next){
+	if (!req.body.requesterUser || !req.body.requesterToken || !req.body.meetingTitle || !req.body.meetingDesc || !req.body.meetingEmployees || !req.body.roomNumber || !req.body.startTime || !req.body.endTime) {
+		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
+		res.end();
+	}
+	else{
+		createMeeting(req.body.requesterUser,req.body.requesterToken,req.body.meetingTitle,req.body.meetingDesc,req.body.meetingEmployees,req.body.roomNumber,req.body.startTime,req.body.endTime).then(function(result){
 			console.log(result);
 			res.status(200).json(result);
 			res.end();

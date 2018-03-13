@@ -36,12 +36,14 @@
 			header: {
 			left: 'prev,next today',
 			center: 'title',
-			right: 'month,basicWeek,basicDay'
+			right: 'month,agendaWeek,agendaDay'
 			},
 			navLinks: true,
-			editable: true,
+			editable: false,
 			eventLimit: true,
-			events: window.calendar_events
+			events: window.calendar_events,
+			weekNumbers: true,
+			weekNumbersWithinDays: true,
 			});
 		});
 	</script>

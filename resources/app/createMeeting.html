@@ -43,10 +43,11 @@
 		<button type="button" id="createMeetingCreateButton" onclick="admin_control_panel.createMeeting(
 														document.getElementById('createMeetingTitle').value,
 														document.getElementById('createMeetingDescription').value,
-														document.getElementById('createMeetingSelectEmp').value,
+														'createMeetingSelectEmp',
 														document.getElementById('createMeetingSelectRoom').value,
 														document.getElementById('createMeeting-datetimepicker-startMeeting').value,
-														document.getElementById('createMeeting-datetimepicker-endMeeting').value);">Create Meeting</button>
+														document.getElementById('createMeeting-datetimepicker-endMeeting').value,
+														'createMeetingCreateButton');">Create Meeting</button>
 		<script>$.datetimepicker.setDateFormatter('moment');jQuery('#createMeeting-datetimepicker-startMeeting').datetimepicker();jQuery('#createMeeting-datetimepicker-endMeeting').datetimepicker();</script>
 	</form>
 </div>

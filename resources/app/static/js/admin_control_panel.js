@@ -1,20 +1,18 @@
 let admin_control_panel = {
 	loadPage: function(page) {
+		$('#main_content').load(page);
 		if (page==='deleteEmployee.html'){
-			$('#main_content').load(page);
 			admin_control_panel.loadEmployeeList("deleteEmpSelect");
 		}
 		else if (page==='deleteRoom.html'){
-			$('#main_content').load(page);
 			admin_control_panel.loadRoomsList("deleteRoomsSelect");
 		}
 		else if (page==='createMeeting.html'){
-			$('#main_content').load(page);
 			admin_control_panel.loadEmployeeList("createMeetingSelectEmp");
 			admin_control_panel.loadRoomsList("createMeetingSelectRoom");
 		}
-		else{
-			$('#main_content').load(page);
+		else if (page==='deleteMeeting.html'){
+			admin_control_panel.loadMeetingsList("deleteMeetingSelect");
 		}
 	},
 	addEmployee: function(user,pass,fname,mname,lname,isAdmin) {
@@ -169,6 +167,42 @@ let admin_control_panel = {
 			});
 		});
 	},
+	loadMeetingsList: function(selectorName) {
+		$(document).ready(function(){
+			$.ajax({
+				method: 'get',
+				url: window.server + '/getMeetingsList',
+				data: {
+					requesterUser:window.username,
+					requesterToken:window.sessionToken,
+					meetingsUser:window.username
+				},
+				tryCount : 0,
+				retryLimit : 5,
+				timeout:1000,
+				success: function(responseData,responseStatus,responseXHR){
+					$.each(responseData,function(index,value){
+						$("#"+selectorName).append($("<option></option>").attr({"key":value.key,"title":value.title,"value":value.key,"id":"del-meetings-list-"+value.key}).text("Meeting Title: "+value.title));
+					});
+				},
+				error: function(xhr, textStatus){
+					if(textStatus === 'timeout'){
+						console.log("Failed from timeout");
+						if (this.tryCount <= this.retryLimit) {
+							this.tryCount += 1;
+							this.timeout += 1500;
+							//try again
+							$.ajax(this);
+							return;
+						}
+					}
+					else{
+						window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");
+					}
+				}
+			});
+		});
+	},
 	deleteEmployee: function(user) {
 		$.ajax({
 			method: 'POST',
@@ -236,8 +270,38 @@ let admin_control_panel = {
 			}
 		});
 	},
-	suggestMeetingTimeAndRoom: function(meetingEmployees){
-		
+	deleteMeeting: function(roomNumber) {
+		$.post({
+			url: window.server + '/deleteMeeting',
+			data: {
+				requesterUser:window.username,
+				requesterToken:window.sessionToken,
+				roomNumber:roomNumber
+			},
+			datamethod:'json',
+			timeout:5000,
+			success: function(responseData,responseStatus,responseXHR){
+				//window.alert(responseData[0]['username']);
+				if ( responseData.length === 0){
+					window.alert("Delete Room Failed!","ROOM DELETE FAILURE");
+				}
+				else if ( responseData==='ROOM_DELETE_SUCCESS' ){
+					window.alert("Room Number '" + roomNumber + "' successfully deleted!","ROOM DELETE SUCCESS");
+					$('#del-rooms-list-'+roomNumber).remove();
+				}
+				else if ( responseData==='BAD_CREDENTIALS' ){
+					window.alert("Bad credentials detected! Are you an Administrator?","ROOM DELETE FAILURE");
+				}
+			},
+			error: function(xhr, textStatus){
+				if(textStatus === 'timeout'){
+					console.log("Failed from timeout");
+				}
+				else{
+					window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");
+				}
+			}
+		});
 	},
 	createMeetingSuggestAndFinalize: function(meetingTitle,meetingDesc,meetingDuration,meetingEmployeesSelector,suggestMeetingLabelSelector,buttonSelectorId){
 		$('#create-meeting-select-rooms').show( "slow" );
@@ -259,6 +323,7 @@ let admin_control_panel = {
 			timeout:1500,
 			datamethod:'json',
 			success: function(responseData,responseStatus,responseXHR){
+				$("#"+buttonSelectorId).removeAttr("disabled");
 				//window.alert(responseData[0]['username']);
 				if ( responseData.length === 0){
 					window.alert("Meeting Verification Failed!","METTING VERIFICATION FAILURE");
@@ -274,6 +339,9 @@ let admin_control_panel = {
 				}
 			},
 			error: function(xhr, textStatus){
+				if(textStatus !== 'timeout'){
+					$("#"+buttonSelectorId).removeAttr("disabled");
+				}
 				if(textStatus === 'timeout'){
 					console.log("Failed from timeout");
 					if (this.tryCount <= this.retryLimit) {
@@ -281,6 +349,10 @@ let admin_control_panel = {
 						this.timeout += 1000;
 						$.ajax(this);
 						return;
+					}
+					else{
+						$("#"+buttonSelectorId).removeAttr("disabled");
+						console.log('Suggest Meeting function failed from timeout.');
 					}
 				}
 				else if (xhr.status === 400){
@@ -291,7 +363,6 @@ let admin_control_panel = {
 				}
 			},
 			complete: function(){
-				$("#"+buttonSelectorId).removeAttr("disabled");
 			}
 		});
 	},
@@ -313,18 +384,24 @@ let admin_control_panel = {
 			},
 			tryCount : 0,
 			retryLimit : 5,
-			timeout:1000,
+			timeout:3000,
 			datamethod:'json',
 			success: function(responseData,responseStatus,responseXHR){
-				//window.alert(responseData[0]['username']);
+				$("#"+buttonSelectorId).removeAttr("disabled");
 				if ( responseData.length === 0){
 					window.alert("Meeting Verification Failed!","METTING VERIFICATION FAILURE");
+				}
+				else if (responseData.errorMessage){
+					window.alert(responseData.errorMessage);
 				}
 				else{
 					window.alert(responseData,"MEETING VERIFICATION");
 				}
 			},
 			error: function(xhr, textStatus){
+				if(textStatus !== 'timeout'){
+					$("#"+buttonSelectorId).removeAttr("disabled");
+				}
 				if(textStatus === 'timeout'){
 					console.log("Failed from timeout");
 					if (this.tryCount <= this.retryLimit) {
@@ -342,11 +419,66 @@ let admin_control_panel = {
 				}
 			},
 			complete: function(){
-				$("#"+buttonSelectorId).removeAttr("disabled");
 			}
 		});
 	},
-	createMeeting: function(meetingTitle,meetingDesc,meetingEmployees,room,startTime,endTime){
-		$('#create-meeting-select-rooms').show( "slow" );
-	}
+	createMeeting: function(meetingTitle,meetingDesc,meetingEmployeesSelector,roomNumber,startTime,endTime,buttonSelectorId){
+		$("#"+buttonSelectorId).attr("disabled", "disabled");
+		$.ajax({
+			method: 'POST',
+			url: window.server + '/createMeeting',
+			data: {
+				requesterUser:window.username,
+				requesterToken:window.sessionToken,
+				meetingOwner:window.username,
+				meetingTitle:meetingTitle,
+				meetingDesc:meetingDesc,
+				meetingEmployees:$('#'+meetingEmployeesSelector).val(),
+				roomNumber:roomNumber,
+				startTime:startTime,
+				endTime:endTime
+			},
+			tryCount : 0,
+			retryLimit : 3,
+			timeout:1000,
+			datamethod:'json',
+			success: function(responseData,responseStatus,responseXHR){
+				$("#"+buttonSelectorId).removeAttr("disabled");
+				if ( responseData.length === 0){
+					window.alert("Meeting Creation Failed!","MEETING CREATION FAILURE");
+				}
+				else if (responseData.errorMessage){
+					window.alert(responseData.errorMessage,"MEETING CREATION FAILURE");
+				}
+				else{
+					window.alert(responseData.successMessage,"MEETING CREATED SUCCESSFULLY");
+				}
+			},
+			error: function(xhr, textStatus){
+				if(textStatus !== 'timeout'){
+					$("#"+buttonSelectorId).removeAttr("disabled");
+				}
+				if(textStatus === 'timeout'){
+					console.log("Failed from timeout");
+					if (this.tryCount <= this.retryLimit) {
+						this.tryCount += 1;
+						this.timeout += 1000;
+						$.ajax(this);
+						return;
+					}
+					else{
+						$("#"+buttonSelectorId).removeAttr("disabled");
+						console.log('CreateMeeting function failed from timeout.');
+					}
+				}
+				else if (xhr.status >= 400){
+					window.alert('INVALID_REQUEST','INVALID REQUEST FAILURE');
+				}
+				else{
+					window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");
+				}
+			},
+			complete: function(){
+			}
+		});	}
 };

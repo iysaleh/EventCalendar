@@ -86,14 +86,11 @@ function deleteEmployee (requesterUser,requesterToken,username) {
 		Promise.all([verify]).then(function(result){
 			console.log(result);
 			if (result.length===0){
-				console.log("BAD CREDS");
 				resolve("BAD_CREDENTIALS");
 			}
 			else{
-				console.log("VERIFIED! TIME TO DELETE.")
 				MongoClient.connect(sUrl, function(err, db){
 					var employees = db.collection('employees');
-					console.log('SENDING DELETE');
 					employees.remove({username:username});
 					resolve("USER_DELETE_SUCCESS");
 					db.close();
@@ -150,7 +147,7 @@ function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,mee
 							for (let y = 0; y < meetingObj.length;y++){
 								var roomMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm').valueOf();
 								var roomMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm').valueOf();
-								if (meetingStartTime<=roomMeetingEnd&&meetingEndTime>=roomMeetingStart){
+								if (_meetingsHaveConflict(meetingStartTime,meetingEndTime,roomMeetingStart,roomMeetingEnd)){
 									resolve('ROOM_MEETING_CONFLICT');
 								}
 							}
@@ -167,9 +164,9 @@ function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,mee
 							for (let y = 0; y < meetingObj.length;y++){
 								var empMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm').valueOf();
 								var empMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm').valueOf();
-								if (meetingStartTime<=empMeetingEnd&&meetingEndTime>=empMeetingStart){
+								if (_meetingsHaveConflict(meetingStartTime,meetingEndTime,empMeetingStart,empMeetingEnd)){
 									arrayOfViolations.push(result[i].username);
-									continue;
+									break;
 								}
 							}
 						}
@@ -187,69 +184,126 @@ function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,mee
 	});
 }
 
-function suggestMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,meetingEmployees,roomNumber,meetingDuration){
+function suggestMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,meetingDuration,meetingEmployees){
 	return new Promise( function(resolve) {
-		meetingStartHour = moment(meetingStartTime.slice(-5),'HH:mm');
-		meetingEndHour = moment(meetingEndTime.slice(-5),'HH:mm');
-		meetingStartTime = moment(meetingStartTime,'YYYY/MM/DD HH:mm').valueOf();
-		meetingEndTime = moment(meetingEndTime,'YYYY/MM/DD HH:mm').valueOf();
+		//Begin searching for meeting times 1 day from now:
+		meetingSearchBeginTime = moment('00:00','HH:mm').add(1, 'days');
+		meetingSearchEndTime = moment(meetingDuration, 'HH:mm').add(1, 'days');
+		meetingStartHour = moment('00:00','HH:mm');
+		meetingEndHour =  moment(meetingDuration, 'HH:mm');
+		//Max time frame we are willing to search for is 2 weeks from now
+		meetingSearchEndRange = moment('00:00','HH:mm').add(14, 'days');
 		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(verResult){
 			if (verResult.length===0){
 				resolve("BAD_CREDENTIALS");
 			}
 			else{
-				var arrayOfMeetingArrays = [];
-				//Get meetings for room
-				arrayOfMeetingArrays.push(_getMeetingsForRoom(roomNumber));
-				//Get all meeting arrays for all invited users
-				for (let i = 0; i < meetingEmployees.length; i++){
-					arrayOfMeetingArrays.push(_getMeetingsForEmployee(meetingEmployees[i]));
-				}
-				Promise.all(arrayOfMeetingArrays).then(function(result){
-					var arrayOfViolations = []
-					//For each user's meeting array
-					for (let i = 0; i < result.length;i++){
-						//For each meeting
-						var meetingObj = result[i].meetings;
-						if (i === 0){ //Room Verification logic
-							for (let y = 0; y < meetingObj.length;y++){
-								var roomMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm').valueOf();
-								var roomMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm').valueOf();
-								if (meetingStartTime<=roomMeetingEnd&&meetingEndTime>=roomMeetingStart){
-									resolve('ROOM_MEETING_CONFLICT');
+				getRoomsList(requesterUser,requesterToken).then(function(meetingRooms){
+					var arrayOfMeetingArrays = [];
+					//Get meetings for rooms
+					numberOfRooms = meetingRooms.length
+					for (let i = 0; i < meetingRooms.length; i++){
+						arrayOfMeetingArrays.push(_getMeetingsForRoom(meetingRooms[i]));
+					}
+					//Get all meeting arrays for all invited users
+					for (let i = 0; i < meetingEmployees.length; i++){
+						arrayOfMeetingArrays.push(_getMeetingsForEmployee(meetingEmployees[i]));
+					}
+					Promise.all(arrayOfMeetingArrays).then(function(result){
+						//Search for a suitable meeting time until we reach the end range of the search
+						var suitableMeetingFound = false;
+						while (meetingSearchEndTime.valueOf() < meetingSearchEndRange.valueOf()){
+							//console.log(meetingSearchEndTime);
+							var suitableMeetingRooms = [];
+							//For each user's meeting array
+							for (let i = 0; i < result.length;i++){
+								//For each meeting
+								var meetingObj = result[i].meetings;
+								console.log(meetingObj);
+								if (i < numberOfRooms){ //Room Verification logic
+									if (meetingObj.length===0){//specialCase where room has no meetings so it's available already!
+										suitableMeetingRooms.push(result[i].roomNumber);
+										i = numberOfRooms-1;
+									}
+									var roomMeetingConflictDetected = false;
+									for (let y = 0; y < meetingObj.length;y++){ 
+										var roomMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm');
+										var roomMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm');
+										if (_meetingsHaveConflict(meetingSearchBeginTime,meetingSearchEndTime,roomMeetingStart,roomMeetingEnd)){
+											//Room meeting conflict detected. Break!
+											roomMeetingConflictDetected=true;
+											break;
+										}
+									}
+									if (!roomMeetingConflictDetected){
+										suitableMeetingRooms.push(result[i].roomNumber);
+										i = numberOfRooms-1;
+									}
+								}
+								else{ //Employee Meeting Verification Logic
+									if (suitableMeetingRooms.length === 0){
+										//no suitable meeting rooms for this meeting time, break!
+										break;
+									}
+									//Check employee working hours conflict
+									meetingStartHour = moment(meetingSearchBeginTime.format('HH:mm').toString(),'HH:mm');
+									meetingEndHour = moment(meetingSearchEndTime.format('HH:mm').toString(),'HH:mm');
+									empScheduleStart = moment(result[i].scheduleBegin,'HH:mm');
+									empScheduleEnd = moment(result[i].scheduleEnd,'HH:mm');
+									if (meetingStartHour.valueOf() < empScheduleStart.valueOf() || meetingEndHour.valueOf() > empScheduleEnd.valueOf()){
+										//Employee Conflict! break!
+										break;
+									}
+									//Check employee meeting conflicts
+									var empConflict = false;
+									for (let y = 0; y < meetingObj.length;y++){
+										var empMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm');
+										var empMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm');
+										if (_meetingsHaveConflict(meetingSearchBeginTime,meetingSearchEndTime,empMeetingStart,empMeetingEnd)){
+											//Employee Conflict! break!
+											empConflict = true;
+											break;
+										}
+									}
+									if (empConflict){
+										break;
+									}
+									if (i===(result.length-1)){
+										//suitableMeetingFound
+										suitableMeetingFound=true;
+										resolve({roomNumber:suitableMeetingRooms[0],startTime:meetingSearchBeginTime.format('YYYY/MM/DD HH:mm'),endTime:meetingSearchEndTime.format('YYYY/MM/DD HH:mm'),errorMessage:""});
+										break;
+									}
+								}
+								if(suitableMeetingFound){
+									break;
 								}
 							}
-						}
-						else{ //Employee Meeting Verification Logic
-							//Check employee working hours conflict
-							empScheduleStart = moment(result[i].scheduleBegin,'HH:mm');
-							empScheduleEnd = moment(result[i].scheduleEnd,'HH:mm');
-							if (meetingStartHour < empScheduleStart || meetingEndHour > empScheduleEnd){
-								arrayOfViolations.push(result[i].username);
-								continue;
+							if(suitableMeetingFound){
+								break;
 							}
-							//Check employee meeting conflicts
-							for (let y = 0; y < meetingObj.length;y++){
-								var empMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm').valueOf();
-								var empMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm').valueOf();
-								if (meetingStartTime<=empMeetingEnd&&meetingEndTime>=empMeetingStart){
-									arrayOfViolations.push(result[i].username);
-									continue;
-								}
-							}
+							//No suitable meeting found so far...Check 15 minutes later!
+							meetingSearchBeginTime = meetingSearchBeginTime.add(15,'minutes');
+							meetingSearchEndTime = meetingSearchEndTime.add(15,'minutes');
 						}
-					}
-					//Log violations if any or return success message.
-					if (arrayOfViolations.length===0){
-						resolve("NO_MEETING_CONFLICTS");
-					}
-					else{
-						resolve("MEETING_CONFLICTS_WITH:"+arrayOfViolations.join());
-					}
+						if(!suitableMeetingFound){
+							resolve({errorMessage:"No Conflict Free Meetings Found Within the Next 2 Weeks!"});
+						}
+					});
 				});
 			}
 		});
 	});
+}
+
+function _meetingsHaveConflict(meetingAStart,meetingAEnd,meetingBStart,meetingBEnd){
+	//Input variables are moments.
+	if((meetingAStart.valueOf()<meetingBStart.valueOf()&&meetingAEnd.valueOf()>meetingBStart.valueOf()) ||(meetingAStart.valueOf()<meetingBEnd.valueOf()&&meetingAEnd.valueOf()>meetingBStart.valueOf())||(meetingAStart.valueOf()===meetingBStart.valueOf()&&meetingAEnd.valueOf()===meetingBEnd.valueOf())){
+		return true;
+	}
+	else{
+		return false;
+	}
 }
 
 function getMeetingsForEmployee(requesterUser,requesterToken,employeeName){
@@ -261,7 +315,6 @@ function getMeetingsForEmployee(requesterUser,requesterToken,employeeName){
 }
 
 function _getMeetingsForEmployee(employeeName){
-	console.log("GETTING EMPLYOEES");
 	return new Promise( function(resolve) {
 		MongoClient.connect(sUrl, function(err, db){
 			db.collection('employees').find({username:employeeName}).map(function(item){
@@ -286,7 +339,7 @@ function _getMeetingsForRoom(roomNumber){
 	return new Promise( function(resolve) {
 		MongoClient.connect(sUrl, function(err, db){
 			db.collection('rooms').find({roomNumber:roomNumber}).map(function(item){
-				return {meetings:item.meetings};
+				return {meetings:item.meetings,roomNumber:item.roomNumber};
 			}).toArray().then(function(result){
 				resolve(result[0]);
 				db.close();
@@ -472,12 +525,26 @@ rootRouter.post('/deleteRoom',function(req,res,next){
 });
 
 rootRouter.post('/verifyMeeting',function(req,res,next){
-	if (!req.body.requesterUser || !req.body.requesterToken || !req.body.meetingTitle || !req.body.meetingDesc || !req.body.meetingEmployees || !req.body.room || !req.body.startTime || !req.body.endTime) {
+	if (!req.body.requesterUser || !req.body.requesterToken || !req.body.meetingTitle || !req.body.meetingDesc || !req.body.meetingEmployees || !req.body.roomNumber || !req.body.startTime || !req.body.endTime) {
 		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
 		res.end();
 	}
 	else{
-		verifyMeeting(req.body.requesterUser,req.body.requesterToken,req.body.meetingTitle,req.body.meetingDesc,req.body.meetingEmployees,req.body.room,req.body.startTime,req.body.endTime).then(function(result){
+		verifyMeeting(req.body.requesterUser,req.body.requesterToken,req.body.meetingTitle,req.body.meetingDesc,req.body.meetingEmployees,req.body.roomNumber,req.body.startTime,req.body.endTime).then(function(result){
+			console.log(result);
+			res.status(200).json(result);
+			res.end();
+		});
+	}
+});
+
+rootRouter.post('/suggestMeeting',function(req,res,next){
+	if (!req.body.requesterUser || !req.body.requesterToken || !req.body.meetingTitle || !req.body.meetingDesc || !req.body.meetingDuration || !req.body.meetingEmployees) {
+		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
+		res.end();
+	}
+	else{
+		suggestMeeting(req.body.requesterUser,req.body.requesterToken,req.body.meetingTitle,req.body.meetingDesc,req.body.meetingDuration,req.body.meetingEmployees).then(function(result){
 			console.log(result);
 			res.status(200).json(result);
 			res.end();

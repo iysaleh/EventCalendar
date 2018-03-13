@@ -239,13 +239,12 @@ let admin_control_panel = {
 	suggestMeetingTimeAndRoom: function(meetingEmployees){
 		
 	},
-	createMeetingSuggestAndFinalize: function(meetingTitle,meetingDesc,meetingDuration,meetingEmployeesSelector,suggestMeetingSelector,buttonSelectorId){
+	createMeetingSuggestAndFinalize: function(meetingTitle,meetingDesc,meetingDuration,meetingEmployeesSelector,suggestMeetingLabelSelector,buttonSelectorId){
 		$('#create-meeting-select-rooms').show( "slow" );
-		
 		$("#"+buttonSelectorId).attr("disabled", "disabled");
 		$.ajax({
 			method: 'POST',
-			url: window.server + '/verifyMeeting',
+			url: window.server + '/suggestMeeting',
 			data: {
 				requesterUser:window.username,
 				requesterToken:window.sessionToken,
@@ -253,21 +252,25 @@ let admin_control_panel = {
 				meetingTitle:meetingTitle,
 				meetingDesc:meetingDesc,
 				meetingEmployees:$('#'+meetingEmployeesSelector).val(),
-				room:room,
-				startTime:startTime,
-				endTime:endTime
+				meetingDuration:meetingDuration
 			},
 			tryCount : 0,
 			retryLimit : 5,
-			timeout:1000,
+			timeout:1500,
 			datamethod:'json',
 			success: function(responseData,responseStatus,responseXHR){
 				//window.alert(responseData[0]['username']);
 				if ( responseData.length === 0){
 					window.alert("Meeting Verification Failed!","METTING VERIFICATION FAILURE");
 				}
+				else if (responseData.errorMessage){
+					$('#'+suggestMeetingLabelSelector).text(responseData.errorMessage);
+				}
 				else{
-					window.alert(responseData,"MEETING VERIFICATION");
+					$('#'+suggestMeetingLabelSelector).text("Suitable meeting time found in Room #"+responseData.roomNumber + " from start time: " + responseData.startTime + " to end time: " + responseData.endTime);
+					$('#createMeeting-datetimepicker-startMeeting').val(responseData.startTime);
+					$('#createMeeting-datetimepicker-endMeeting').val(responseData.endTime);
+					$('#createMeetingSelectRoom').val(responseData.roomNumber);
 				}
 			},
 			error: function(xhr, textStatus){
@@ -292,7 +295,7 @@ let admin_control_panel = {
 			}
 		});
 	},
-	verifyMeetingConfiguration: function(meetingTitle,meetingDesc,meetingEmployeesSelector,room,startTime,endTime,buttonSelectorId){
+	verifyMeetingConfiguration: function(meetingTitle,meetingDesc,meetingEmployeesSelector,roomNumber,startTime,endTime,buttonSelectorId){
 		$("#"+buttonSelectorId).attr("disabled", "disabled");
 		$.ajax({
 			method: 'POST',
@@ -304,7 +307,7 @@ let admin_control_panel = {
 				meetingTitle:meetingTitle,
 				meetingDesc:meetingDesc,
 				meetingEmployees:$('#'+meetingEmployeesSelector).val(),
-				room:room,
+				roomNumber:roomNumber,
 				startTime:startTime,
 				endTime:endTime
 			},

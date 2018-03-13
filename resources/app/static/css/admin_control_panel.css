@@ -151,6 +151,14 @@ a {
   font-weight: bold;
 }
 
+.control-panel-form .emphasis{
+  font-family: "Roboto", sans-serif;
+  color: Green;
+  font-size: 16px;
+  text-align: left;
+  font-weight: bold;
+}
+
 .control-panel-form select {
 
   /* styling */

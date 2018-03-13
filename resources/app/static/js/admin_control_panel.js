@@ -239,8 +239,58 @@ let admin_control_panel = {
 	suggestMeetingTimeAndRoom: function(meetingEmployees){
 		
 	},
-	createMeetingLockEmployees: function(meetingTitle,meetingDesc,meetingEmployeesSelector){
+	createMeetingSuggestAndFinalize: function(meetingTitle,meetingDesc,meetingDuration,meetingEmployeesSelector,suggestMeetingSelector,buttonSelectorId){
 		$('#create-meeting-select-rooms').show( "slow" );
+		
+		$("#"+buttonSelectorId).attr("disabled", "disabled");
+		$.ajax({
+			method: 'POST',
+			url: window.server + '/verifyMeeting',
+			data: {
+				requesterUser:window.username,
+				requesterToken:window.sessionToken,
+				meetingOwner:window.username,
+				meetingTitle:meetingTitle,
+				meetingDesc:meetingDesc,
+				meetingEmployees:$('#'+meetingEmployeesSelector).val(),
+				room:room,
+				startTime:startTime,
+				endTime:endTime
+			},
+			tryCount : 0,
+			retryLimit : 5,
+			timeout:1000,
+			datamethod:'json',
+			success: function(responseData,responseStatus,responseXHR){
+				//window.alert(responseData[0]['username']);
+				if ( responseData.length === 0){
+					window.alert("Meeting Verification Failed!","METTING VERIFICATION FAILURE");
+				}
+				else{
+					window.alert(responseData,"MEETING VERIFICATION");
+				}
+			},
+			error: function(xhr, textStatus){
+				if(textStatus === 'timeout'){
+					console.log("Failed from timeout");
+					if (this.tryCount <= this.retryLimit) {
+						this.tryCount += 1;
+						this.timeout += 1000;
+						$.ajax(this);
+						return;
+					}
+				}
+				else if (xhr.status === 400){
+					window.alert('INVALID_REQUEST','INVALID REQUEST FAILURE');
+				}
+				else{
+					window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");
+				}
+			},
+			complete: function(){
+				$("#"+buttonSelectorId).removeAttr("disabled");
+			}
+		});
 	},
 	verifyMeetingConfiguration: function(meetingTitle,meetingDesc,meetingEmployeesSelector,room,startTime,endTime,buttonSelectorId){
 		$("#"+buttonSelectorId).attr("disabled", "disabled");
@@ -259,13 +309,16 @@ let admin_control_panel = {
 				endTime:endTime
 			},
 			tryCount : 0,
-			retryLimit : 3,
-			timeout:5000,
+			retryLimit : 5,
+			timeout:1000,
 			datamethod:'json',
 			success: function(responseData,responseStatus,responseXHR){
 				//window.alert(responseData[0]['username']);
 				if ( responseData.length === 0){
 					window.alert("Meeting Verification Failed!","METTING VERIFICATION FAILURE");
+				}
+				else{
+					window.alert(responseData,"MEETING VERIFICATION");
 				}
 			},
 			error: function(xhr, textStatus){
@@ -273,9 +326,13 @@ let admin_control_panel = {
 					console.log("Failed from timeout");
 					if (this.tryCount <= this.retryLimit) {
 						this.tryCount += 1;
+						this.timeout += 1000;
 						$.ajax(this);
 						return;
 					}
+				}
+				else if (xhr.status === 400){
+					window.alert('INVALID_REQUEST','INVALID REQUEST FAILURE');
 				}
 				else{
 					window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");

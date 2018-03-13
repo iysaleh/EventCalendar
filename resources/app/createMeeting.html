@@ -10,15 +10,22 @@
 		<label for="createMeetingSelectEmp">Select employees to invite to Meeting. (hold ctrl to select more than one):</label>
 		<select multiple class="form-control" id="createMeetingSelectEmp"></select>
 		
-		<button type="button" onclick="admin_control_panel.createMeetingLockEmployees(
+		<label for="createMeeting-timepicker-suggestMeeting">Input Meeting Duration:</label>
+		<input id="createMeeting-timepicker-suggestMeeting" type="text" placeholder="Meeting Start Time" >
+		<script>$.datetimepicker.setDateFormatter('moment');jQuery('#createMeeting-timepicker-suggestMeeting').datetimepicker({datepicker:false,format:'HH:mm'});</script>
+		<button id="buttonSuggestTime" type="button" onclick="admin_control_panel.createMeetingSuggestAndFinalize(
 										document.getElementById('createMeetingTitle').value,
 										document.getElementById('createMeetingDescription').value,
-										'createMeetingSelectEmp');">Select Meeting Room
+										document.getElementById('createMeeting-timepicker-suggestMeeting').value,
+										'createMeetingSelectEmp',
+										'meetingSuggestionResultLabel'
+										'buttonSuggestTime');">Suggest Meeting & Select Meeting Room
 		</button>
 	</form>
 </div>
 <div id='create-meeting-select-rooms' style="display: none;" >
 	<form class="control-panel-form" id="create-meeting-select-room-form">
+		<label class='emphasis' id="meetingSuggestionResultLabel">No Meeting conflicts found from blah to blah in room #15</label></br></br>
 		<label for="createMeeting-datetimepicker-startMeeting">Input Meeting Start Time:</label>
 		<input id="createMeeting-datetimepicker-startMeeting" type="text" placeholder="Meeting Start Time" >
 		<label for="createMeeting-datetimepicker-endMeeting">Input Meeting End Time:</label>

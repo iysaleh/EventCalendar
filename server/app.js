@@ -122,36 +122,130 @@ function deleteRoom (requesterUser,requesterToken,roomNumber) {
 	});
 }
 
-function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,meetingEmployees,room,startTime,endTime){
+function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,meetingEmployees,roomNumber,meetingStartTime,meetingEndTime){
 	return new Promise( function(resolve) {
+		meetingStartHour = moment(meetingStartTime.slice(-5),'HH:mm');
+		meetingEndHour = moment(meetingEndTime.slice(-5),'HH:mm');
+		meetingStartTime = moment(meetingStartTime,'YYYY/MM/DD HH:mm').valueOf();
+		meetingEndTime = moment(meetingEndTime,'YYYY/MM/DD HH:mm').valueOf();
 		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(verResult){
 			if (verResult.length===0){
 				resolve("BAD_CREDENTIALS");
 			}
 			else{
-				arrayOfMeetingArrays = [];
+				var arrayOfMeetingArrays = [];
 				//Get meetings for room
-				arrayOfMeetingArrays.push(_getMeetingsForRoom(roomNumber));			
-				//Get all meeting stores for all users
+				arrayOfMeetingArrays.push(_getMeetingsForRoom(roomNumber));
+				//Get all meeting arrays for all invited users
 				for (let i = 0; i < meetingEmployees.length; i++){
 					arrayOfMeetingArrays.push(_getMeetingsForEmployee(meetingEmployees[i]));
 				}
 				Promise.all(arrayOfMeetingArrays).then(function(result){
-					arrayOfViolations = []
-					console.log("MEETING!");
-					console.log(result);
+					var arrayOfViolations = []
 					//For each user's meeting array
 					for (let i = 0; i < result.length;i++){
 						//For each meeting
-						for (let y = 0; y < result[i].length;y++){
-							curMeetingStart = result[i][y].start;
-							//Currently don't support comparison with infinitely repeating meetings.
-							curMeetingEnd = result[i][y].end;
-							console.log(curMeetingStart);
+						var meetingObj = result[i].meetings;
+						if (i === 0){ //Room Verification logic
+							for (let y = 0; y < meetingObj.length;y++){
+								var roomMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm').valueOf();
+								var roomMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm').valueOf();
+								if (meetingStartTime<=roomMeetingEnd&&meetingEndTime>=roomMeetingStart){
+									resolve('ROOM_MEETING_CONFLICT');
+								}
+							}
+						}
+						else{ //Employee Meeting Verification Logic
+							//Check employee working hours conflict
+							empScheduleStart = moment(result[i].scheduleBegin,'HH:mm');
+							empScheduleEnd = moment(result[i].scheduleEnd,'HH:mm');
+							if (meetingStartHour < empScheduleStart || meetingEndHour > empScheduleEnd){
+								arrayOfViolations.push(result[i].username);
+								continue;
+							}
+							//Check employee meeting conflicts
+							for (let y = 0; y < meetingObj.length;y++){
+								var empMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm').valueOf();
+								var empMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm').valueOf();
+								if (meetingStartTime<=empMeetingEnd&&meetingEndTime>=empMeetingStart){
+									arrayOfViolations.push(result[i].username);
+									continue;
+								}
+							}
 						}
 					}
-					//Check if conflict with startTime and endTime of room -- If Yes, Return FAIL!
-					//Check if conflict with startTime and endTime of any users -- if Yes, return list of who has conflict
+					//Log violations if any or return success message.
+					if (arrayOfViolations.length===0){
+						resolve("NO_MEETING_CONFLICTS");
+					}
+					else{
+						resolve("MEETING_CONFLICTS_WITH:"+arrayOfViolations.join());
+					}
+				});
+			}
+		});
+	});
+}
+
+function suggestMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,meetingEmployees,roomNumber,meetingDuration){
+	return new Promise( function(resolve) {
+		meetingStartHour = moment(meetingStartTime.slice(-5),'HH:mm');
+		meetingEndHour = moment(meetingEndTime.slice(-5),'HH:mm');
+		meetingStartTime = moment(meetingStartTime,'YYYY/MM/DD HH:mm').valueOf();
+		meetingEndTime = moment(meetingEndTime,'YYYY/MM/DD HH:mm').valueOf();
+		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(verResult){
+			if (verResult.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				var arrayOfMeetingArrays = [];
+				//Get meetings for room
+				arrayOfMeetingArrays.push(_getMeetingsForRoom(roomNumber));
+				//Get all meeting arrays for all invited users
+				for (let i = 0; i < meetingEmployees.length; i++){
+					arrayOfMeetingArrays.push(_getMeetingsForEmployee(meetingEmployees[i]));
+				}
+				Promise.all(arrayOfMeetingArrays).then(function(result){
+					var arrayOfViolations = []
+					//For each user's meeting array
+					for (let i = 0; i < result.length;i++){
+						//For each meeting
+						var meetingObj = result[i].meetings;
+						if (i === 0){ //Room Verification logic
+							for (let y = 0; y < meetingObj.length;y++){
+								var roomMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm').valueOf();
+								var roomMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm').valueOf();
+								if (meetingStartTime<=roomMeetingEnd&&meetingEndTime>=roomMeetingStart){
+									resolve('ROOM_MEETING_CONFLICT');
+								}
+							}
+						}
+						else{ //Employee Meeting Verification Logic
+							//Check employee working hours conflict
+							empScheduleStart = moment(result[i].scheduleBegin,'HH:mm');
+							empScheduleEnd = moment(result[i].scheduleEnd,'HH:mm');
+							if (meetingStartHour < empScheduleStart || meetingEndHour > empScheduleEnd){
+								arrayOfViolations.push(result[i].username);
+								continue;
+							}
+							//Check employee meeting conflicts
+							for (let y = 0; y < meetingObj.length;y++){
+								var empMeetingStart = moment(meetingObj[y].start,'YYYY/MM/DD HH:mm').valueOf();
+								var empMeetingEnd = moment(meetingObj[y].end,'YYYY/MM/DD HH:mm').valueOf();
+								if (meetingStartTime<=empMeetingEnd&&meetingEndTime>=empMeetingStart){
+									arrayOfViolations.push(result[i].username);
+									continue;
+								}
+							}
+						}
+					}
+					//Log violations if any or return success message.
+					if (arrayOfViolations.length===0){
+						resolve("NO_MEETING_CONFLICTS");
+					}
+					else{
+						resolve("MEETING_CONFLICTS_WITH:"+arrayOfViolations.join());
+					}
 				});
 			}
 		});
@@ -167,28 +261,38 @@ function getMeetingsForEmployee(requesterUser,requesterToken,employeeName){
 }
 
 function _getMeetingsForEmployee(employeeName){
+	console.log("GETTING EMPLYOEES");
 	return new Promise( function(resolve) {
 		MongoClient.connect(sUrl, function(err, db){
 			db.collection('employees').find({username:employeeName}).map(function(item){
-				return {meetings:meetings};
+				return {username:item.username,meetings:item.meetings,scheduleBegin:item.scheduleBegin,scheduleEnd:item.scheduleEnd};
 			}).toArray().then(function(result){
 				resolve(result[0]);
 				db.close();
 			});
 		});
-	});	
+	});
 }
 
 function getMeetingsForRoom(requesterUser,requesterToken,roomNumber){
 	return new Promise( function(resolve) {
-		
+		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(){
+			resolve(_getMeetingsForRoom(roomNumber));
+		});
 	});	
 }
 
 function _getMeetingsForRoom(roomNumber){
 	return new Promise( function(resolve) {
-		
-	});	
+		MongoClient.connect(sUrl, function(err, db){
+			db.collection('rooms').find({roomNumber:roomNumber}).map(function(item){
+				return {meetings:item.meetings};
+			}).toArray().then(function(result){
+				resolve(result[0]);
+				db.close();
+			});
+		});
+	});
 }
 
 function _verifyRequesterUserToken(requesterUser,requesterToken){
@@ -319,28 +423,28 @@ rootRouter.use(logger);
 
 rootRouter.get('/login',function(req,res,next){
 	login(req.query.user,req.query.pass).then(function(result){
-		res.json(result[0]);
+		res.status(200).json(result[0]);
 		res.end();
 	});
 });
 
 rootRouter.get('/getEmployeeList',function(req,res,next){
 	getEmployeeList(req.query.requesterUser,req.query.requesterToken).then(function(result){
-		res.json(result);
+		res.status(200).json(result);
 		res.end();
 	});
 });
 
 rootRouter.get('/getRoomsList',function(req,res,next){
 	getRoomsList(req.query.requesterUser,req.query.requesterToken).then(function(result){
-		res.json(result);
+		res.status(200).json(result);
 		res.end();
 	});
 });
 
 rootRouter.post('/addEmployee',function(req,res,next){
 	addEmployee(req.body.requesterUser,req.body.requesterToken,req.body.user,req.body.pass,req.body.fname,req.body.mname,req.body.lname,req.body.isAdmin).then(function(result){
-		res.json(result);
+		res.status(200).json(result);
 		res.end();
 	});
 });
@@ -348,30 +452,37 @@ rootRouter.post('/addEmployee',function(req,res,next){
 rootRouter.post('/addRoom',function(req,res,next){
 	console.log(req.query);
 	addRoom(req.body.requesterUser,req.body.requesterToken,req.body.roomNumber,req.body.roomCapacity).then(function(result){
-		res.json(result);
+		res.status(200).json(result);
 		res.end();
 	});
 });
 
 rootRouter.post('/deleteEmployee',function(req,res,next){
 	deleteEmployee(req.body.requesterUser,req.body.requesterToken,req.body.username).then(function(result){
-		res.json(result);
+		res.status(200).json(result);
 		res.end();
 	});
 });
 
 rootRouter.post('/deleteRoom',function(req,res,next){
 	deleteRoom(req.body.requesterUser,req.body.requesterToken,req.body.roomNumber).then(function(result){
-		res.json(result);
+		res.status(200).json(result);
 		res.end();
 	});
 });
 
 rootRouter.post('/verifyMeeting',function(req,res,next){
-	verifyMeeting(req.body.requesterUser,req.body.requesterToken,req.body.meetingTitle,req.body.meetingDesc,req.body.meetingEmployees,req.body.room,req.body.startTime,req.body.endTime).then(function(result){
-		res.json(result);
+	if (!req.body.requesterUser || !req.body.requesterToken || !req.body.meetingTitle || !req.body.meetingDesc || !req.body.meetingEmployees || !req.body.room || !req.body.startTime || !req.body.endTime) {
+		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
 		res.end();
-	});
+	}
+	else{
+		verifyMeeting(req.body.requesterUser,req.body.requesterToken,req.body.meetingTitle,req.body.meetingDesc,req.body.meetingEmployees,req.body.room,req.body.startTime,req.body.endTime).then(function(result){
+			console.log(result);
+			res.status(200).json(result);
+			res.end();
+		});
+	}
 });
 
 app.use('/',rootRouter);

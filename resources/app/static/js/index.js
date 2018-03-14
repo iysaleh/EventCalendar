@@ -12,7 +12,7 @@ let index = {
         asticode.notifier.init();
 		//asticode.calendar.init();
 		
-		if (window.isAdmin===true){
+		if (window.isAdmin==='true'){
 			$('#left').load("admin_control_panel.html");
 			$(document).ready(function(){
 				$('#main_content').load("notifications.html");

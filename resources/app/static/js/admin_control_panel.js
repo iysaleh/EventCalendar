@@ -88,6 +88,7 @@ let admin_control_panel = {
 					window.alert(responseData.errorMessage,"UPDATE PROFILE FAILURE");
 				}
 				else{
+					window.alert(responseData.successMessage,"USER_PROFILE_UPDATED_SUCCESSFULLY");
 					//console.log(responseData.successMessage);//,"NOTIFICATION ACKNOWLEDGED SUCCESSFULLY");
 				}
 			},
@@ -339,10 +340,10 @@ let admin_control_panel = {
 			data: {
 				requesterUser:window.username,
 				requesterToken:window.sessionToken,
-				key:$('#'+meetingSelectorId).key(),
-				title:$('#'+meetingSelectorId).title(),
-				owner:$('#'+meetingSelectorId).owner(),
-				meetingEmployees:$('#'+meetingSelectorId).meetingEmployees()
+				key:document.getElementById(meetingSelectorId).getAttribute('key'),
+				title:document.getElementById(meetingSelectorId).getAttribute('title'),
+				owner:document.getElementById(meetingSelectorId).getAttribute('owner'),
+				meetingEmployees:document.getElementById(meetingSelectorId).getAttribute('meetingEmployees')
 			},
 			datamethod:'json',
 			timeout:5000,

@@ -246,7 +246,7 @@ let admin_control_panel = {
 				timeout:1000,
 				success: function(responseData,responseStatus,responseXHR){
 					$.each(responseData,function(index,value){
-						$("#"+selectorName).append($("<option></option>").attr({"key":value.key,"owner":value.owner,"meetingEmployees":value.meetingEmployees,"title":value.title,"value":"del-meetings-list-"+value.key,"id":"del-meetings-list-"+value.key}).text("Meeting Title: "+value.title));
+						$("#"+selectorName).append($("<option></option>").attr({"key":value.key,"owner":value.owner,"roomNumber":value.roomNumber,"meetingEmployees":value.meetingEmployees,"title":value.title,"value":"del-meetings-list-"+value.key,"id":"del-meetings-list-"+value.key}).text("Meeting Title: "+value.title));
 					});
 				},
 				error: function(xhr, textStatus){
@@ -340,6 +340,7 @@ let admin_control_panel = {
 			data: {
 				requesterUser:window.username,
 				requesterToken:window.sessionToken,
+				roomNumber:document.getElementById(meetingSelectorId).getAttribute('roomNumber'),
 				key:document.getElementById(meetingSelectorId).getAttribute('key'),
 				title:document.getElementById(meetingSelectorId).getAttribute('title'),
 				owner:document.getElementById(meetingSelectorId).getAttribute('owner'),

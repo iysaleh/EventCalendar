@@ -62,6 +62,62 @@ let admin_control_panel = {
 			}
 		});
 	},
+	manageProfile: function(pass,fname,mname,lname,startHours,endHours,isVisible) {
+		$("#manageEmp-updateProfile-button").attr("disabled", "disabled");
+		$.ajax({
+			method: 'POST',
+			url: window.server + '/updateProfile',
+			data: {
+				requesterUser:window.username,
+				requesterToken:window.sessionToken,
+				pass:pass,
+				fname:fname,
+				mname:mname,
+				lname:lname,
+				startHours:startHours,
+				endHours:endHours,
+				isVisible:isVisible
+			},
+			tryCount : 0,
+			retryLimit : 3,
+			timeout:1000,
+			datamethod:'json',
+			success: function(responseData,responseStatus,responseXHR){
+				$("#manageEmp-updateProfile-button").removeAttr("disabled");
+				if (responseData.errorMessage){
+					window.alert(responseData.errorMessage,"UPDATE PROFILE FAILURE");
+				}
+				else{
+					//console.log(responseData.successMessage);//,"NOTIFICATION ACKNOWLEDGED SUCCESSFULLY");
+				}
+			},
+			error: function(xhr, textStatus){
+				if(textStatus !== 'timeout'){
+					$("#manageEmp-updateProfile-button").removeAttr("disabled");
+				}
+				if(textStatus === 'timeout'){
+					console.log("Failed from timeout");
+					if (this.tryCount <= this.retryLimit) {
+						this.tryCount += 1;
+						this.timeout += 1000;
+						$.ajax(this);
+						return;
+					}
+					else{
+						$("#manageEmp-updateProfile-button").removeAttr("disabled");
+					}
+				}
+				else if (xhr.status >= 400){
+					window.alert('INVALID_REQUEST','INVALID REQUEST FAILURE');
+				}
+				else{
+					window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");
+				}
+			},
+			complete: function(){
+			}
+		});	
+	},
 	addRoom: function(roomNum,roomCap) {
 		window.alert("Room Number: "+ roomNum + " RoomCap: "+ roomCap + " User: " + window.username + " Token: " + window.sessionToken);
 		Promise.resolve(

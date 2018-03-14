@@ -1,0 +1,27 @@
+<link rel="stylesheet" type="text/css" href="static/css/jquery.datetimepicker.css"/ >
+<script src="static/js/jquery.datetimepicker.full.js"></script>
+<script src="static/js/moment.js"></script>
+<form class="control-panel-form" id="add-employee-form">
+	<input id="manageEmpPass" type="password" placeholder="password"/>
+	<input id="manageEmpFirstName" type="text" placeholder="first name"/>
+	<input id="manageEmpMiddleName" type="text" placeholder="middle name"/>
+	<input id="manageEmpLastName" type="text" placeholder="last name"/>
+	<label for="manageEmp-timepicker-startHours">Input Starting Work Hour:</label>
+	<input id="manageEmp-timepicker-startHours" type="text" placeholder=">Input Starting Work Hour" >
+	<label for="manageEmp-timepicker-endHours">Input Ending Work Hour:</label>
+	<input id="manageEmp-timepicker-endHours" type="text" placeholder="Input Ending Work Hour" >
+	<script>$.datetimepicker.setDateFormatter('moment');jQuery('#manageEmp-timepicker-startHours').datetimepicker({datepicker:false,format:'HH:mm'});jQuery('#manageEmp-timepicker-endHours').datetimepicker({datepicker:false,format:'HH:mm'})</script>
+	<select class="classic" id="manageEmpIsVisible">
+		<option value=false>Make Schedule Visible: False</option>
+		<option value=true>Make Schedule Visible: True</option>
+	</select>
+	<button type="button" id="manageEmp-updateProfile-button" onclick="admin_control_panel.manageProfile(
+									document.getElementById('manageEmpPass').value,
+									document.getElementById('manageEmpFirstName').value,
+									document.getElementById('manageEmpMiddleName').value,
+									document.getElementById('manageEmpLastName').value,
+									document.getElementById('manageEmp-timepicker-startHours').value,
+									document.getElementById('manageEmp-timepicker-endHours').value,
+									document.getElementById('manageEmpIsVisible').value);">Update Profile
+	</button>
+</form>

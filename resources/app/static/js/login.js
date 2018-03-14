@@ -69,7 +69,6 @@ let login = {
 				success: function(responseData,responseStatus,responseXHR){
 					//Compute new notifications set
 					var new_notifications = _.filter(responseData, function(obj){ return !_.findWhere(window.notifications, obj); });
-					console.log(new_notifications);
 					//Add new notification objects to notificationsHtml
 					for (let i = 0; i < new_notifications.length;i++){
 						if (new_notifications[i].type==='respond'){

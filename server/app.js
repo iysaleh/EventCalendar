@@ -33,7 +33,7 @@ function addEmployee (requesterUser,requesterToken,username,password,fname,mname
 					var query = {username:username};
 					employees.find(query).toArray().then(function(result){
 						if (result.length === 0) {
-							employees.insert({username:username,password:password,isAdmin:isAdmin,startHour:"07:00:00",endHour:"19:00:00",fname:fname,mname:mname,lname:lname,sessionToken:"",meetings:[],notifications:[]});
+							employees.insert({username:username,password:password,isAdmin:isAdmin,scheduleBegin:"07:00:00",scheduleEnd:"19:00:00",scheduleIsVisible:true,fName:fname,mName:mname,lName:lname,sessionToken:"",meetings:[],notifications:[]});
 							resolve("USER_ADD_SUCCESS")
 							db.close()
 						}
@@ -113,6 +113,25 @@ function deleteRoom (requesterUser,requesterToken,roomNumber) {
 					rooms.remove({roomNumber:roomNumber});
 					resolve("ROOM_DELETE_SUCCESS");
 					db.close();
+				});
+			}
+		});
+	});
+}
+function updateProfile (requesterUser,requesterToken,password,fname,mname,lname,startHours,endHours,isVisible) {
+	verify = _verifyRequesterUserToken(requesterUser,requesterToken);
+	return new Promise( function(resolve) {
+		Promise.all([verify]).then(function(result){
+			if (result.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				MongoClient.connect(sUrl, function(err, db){
+					var employees = db.collection('employees');
+					employees.update({username:requesterUser},{$set:{password:password,fName:fname,mName:mname,lName:lname,scheduleBegin:startHours,scheduleEnd:endHours,scheduleIsVisible:isVisible}}).then(function(){
+						resolve({errorMessage:"",successMessage:"USER_PROFILE_UPDATED"});
+						db.close();
+					});
 				});
 			}
 		});
@@ -212,43 +231,13 @@ function acceptMeetingNotification(requesterUser,requesterToken,key,title,sender
 	});	
 }
 
-
-
-/*
-function acknowledgeNotification (requesterUser,requesterToken,key,title,sender) {
-	console.log("GOT THIS FAR");
-	return new Promise( function(resolve) {
-		console.log("ATLEAST I GOT THIS FAR");
-		console.log("HERE ARE MY ARGS");
-		console.log(requesterUser+" KEY:"+key + " TITLE: "+title + " SENDER: "+sender);
-		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(verResult){
-			if (verResult.length===0){
-				resolve("BAD_CREDENTIALS");
-			}
-			else{
-				console.log("HERE I AM!");
-				MongoClient.connect(sUrl, function(err, db){
-					var employees = db.collection('employees');
-					console.log("HERE ARE MY ARGS");
-					console.log(requesterUser+" KEY:"+key + " TITLE: "+title + " SENDER: "+sender);
-					employees.update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true});
-					console.log('DID I GET THIS FAR?');
-					resolve({errorMessage:"",successMessage:"NOTIFICATION_SUCCESSFULLY_ACKNOWLEDGED"});
-					db.close();
-				});
-			}
-		});
-	});
-}*/
-
-
 function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,meetingEmployees,roomNumber,meetingStartTime,meetingEndTime){
 	return new Promise( function(resolve) {
 		meetingStartHour = moment(meetingStartTime.slice(-5),'HH:mm');
 		meetingEndHour = moment(meetingEndTime.slice(-5),'HH:mm');
 		meetingStartTime = moment(meetingStartTime,'YYYY/MM/DD HH:mm');
 		meetingEndTime = moment(meetingEndTime,'YYYY/MM/DD HH:mm');
-		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(verResult){
+		Promise.all([_verifyRequesterUserToken(requesterUser,requesterToken)]).then(function(verResult){
 			if (verResult.length===0){
 				resolve("BAD_CREDENTIALS");
 			}
@@ -311,7 +300,7 @@ function createMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,mee
 	return new Promise( function(resolve) {
 		meetingStartTime = moment(meetingStartTime,'YYYY/MM/DD HH:mm');
 		meetingEndTime = moment(meetingEndTime,'YYYY/MM/DD HH:mm');
-		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(verResult){
+		Promise.all([_verifyRequesterUserToken(requesterUser,requesterToken)]).then(function(verResult){
 			if (verResult.length===0){
 				resolve("BAD_CREDENTIALS");
 			}
@@ -411,11 +400,12 @@ function suggestMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,me
 		meetingEndHour =  moment(meetingDuration, 'HH:mm');
 		//Max time frame we are willing to search for is 2 weeks from now
 		meetingSearchEndRange = moment('00:00','HH:mm').add(14, 'days');
-		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(verResult){
+		Promise.all([_verifyRequesterUserToken(requesterUser,requesterToken)]).then(function(verResult){
 			if (verResult.length===0){
 				resolve("BAD_CREDENTIALS");
 			}
 			else{
+				console.log("HERE I AM");
 				getRoomsList(requesterUser,requesterToken).then(function(meetingRooms){
 					var arrayOfMeetingArrays = [];
 					//Get meetings for rooms
@@ -580,18 +570,6 @@ function _verifyRequesterUserToken(requesterUser,requesterToken){
 	});
 }
 
-function addEmployeeOld (username,password) {
-	MongoClient.connect(sUrl, function(err, db){
-		var employees = db.collection('employees');
-		var query = {username:username}
-		employees.find(query).toArray().then(function(result){
-			if (result.length === 0) {
-				employees.insert({username:username,password:password,isAdmin:false,startHour:"07:00:00",endHour:"19:00:00",meetings:[]});
-			}
-			db.close()
-		});
-	});
-}
 
 function getEmployeeList(requesterUser,requesterToken) {
 	verify = _verifyRequesterUserToken(requesterUser,requesterToken);
@@ -712,7 +690,7 @@ function randU32Sync() {
 }
 
 function logger(req,res,next){
-  console.log(new Date(), req.method, req.url, req.query, req.body);
+//  console.log(new Date(), req.method, req.url, req.query, req.body);
   next();
 }
 
@@ -781,6 +759,20 @@ rootRouter.post('/addRoom',function(req,res,next){
 		res.status(200).json(result);
 		res.end();
 	});
+});
+
+rootRouter.post('/updateProfile',function(req,res,next){
+	if (!req.body.requesterUser || !req.body.requesterToken || !req.body.pass || !req.body.fname || !req.body.mname || !req.body.lname || !req.body.startHours || !req.body.endHours) {
+		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
+		res.end();
+	}
+	else{
+		updateProfile(req.body.requesterUser,req.body.requesterToken,req.body.pass,req.body.fname,req.body.mname,req.body.lname,req.body.startHours,req.body.endHours,req.body.isVisible).then(function(result){
+			console.log(result);
+			res.status(200).json(result);
+			res.end();
+		});
+	}
 });
 
 rootRouter.post('/deleteEmployee',function(req,res,next){

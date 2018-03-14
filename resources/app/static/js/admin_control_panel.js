@@ -14,6 +14,13 @@ let admin_control_panel = {
 		else if (page==='deleteMeeting.html'){
 			admin_control_panel.loadMeetingsList("deleteMeetingSelect");
 		}
+		else if (page==='notifications.html'){
+			$(document).ready(function(){
+				//$('#notifications-pane').load($($.parseHTML(window.notificationsHtml)));
+				console.log(window.notificationsHtml);
+				document.getElementById("notifications-pane").insertAdjacentHTML('beforeend',window.notificationsHtml);
+			});
+		}
 	},
 	addEmployee: function(user,pass,fname,mname,lname,isAdmin) {
 		$.ajax({
@@ -469,6 +476,222 @@ let admin_control_panel = {
 					else{
 						$("#"+buttonSelectorId).removeAttr("disabled");
 						console.log('CreateMeeting function failed from timeout.');
+					}
+				}
+				else if (xhr.status >= 400){
+					window.alert('INVALID_REQUEST','INVALID REQUEST FAILURE');
+				}
+				else{
+					window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");
+				}
+			},
+			complete: function(){
+			}
+		});	
+	},
+	acceptMeetingNotification: function(notificationIdentifier,buttonSelectorId,key,title,sender){
+		$("#"+buttonSelectorId).attr("disabled", "disabled");
+		$.ajax({
+			method: 'POST',
+			url: window.server + '/acceptMeetingNotification',
+			data: {
+				requesterUser:window.username,
+				requesterToken:window.sessionToken,
+				key:key,
+				title:title,
+				sender:sender
+			},
+			tryCount : 0,
+			retryLimit : 3,
+			timeout:1000,
+			datamethod:'json',
+			success: function(responseData,responseStatus,responseXHR){
+				$("#"+buttonSelectorId).removeAttr("disabled");
+				if (responseData.errorMessage){
+					window.alert(responseData.errorMessage,"NOTIFICATION ACKNOWLEDGE FAILURE");
+				}
+				else{
+					console.log(responseData.successMessage);//,"NOTIFICATION ACKNOWLEDGED SUCCESSFULLY");
+					var element = document.getElementById(notificationIdentifier);
+					element.parentNode.removeChild(element);
+				}
+			},
+			error: function(xhr, textStatus){
+				if(textStatus !== 'timeout'){
+					$("#"+buttonSelectorId).removeAttr("disabled");
+				}
+				if(textStatus === 'timeout'){
+					console.log("Failed from timeout");
+					if (this.tryCount <= this.retryLimit) {
+						this.tryCount += 1;
+						this.timeout += 1000;
+						$.ajax(this);
+						return;
+					}
+					else{
+						$("#"+buttonSelectorId).removeAttr("disabled");
+					}
+				}
+				else if (xhr.status >= 400){
+					window.alert('INVALID_REQUEST','INVALID REQUEST FAILURE');
+				}
+				else{
+					window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");
+				}
+			},
+			complete: function(){
+			}
+		});	
+	},
+	ignoreMeetingNotification: function(notificationIdentifier,buttonSelectorId,key,title,sender){
+		$("#"+buttonSelectorId).attr("disabled", "disabled");
+		$.ajax({
+			method: 'POST',
+			url: window.server + '/ignoreMeetingNotification',
+			data: {
+				requesterUser:window.username,
+				requesterToken:window.sessionToken,
+				key:key,
+				title:title,
+				sender:sender
+			},
+			tryCount : 0,
+			retryLimit : 3,
+			timeout:1000,
+			datamethod:'json',
+			success: function(responseData,responseStatus,responseXHR){
+				$("#"+buttonSelectorId).removeAttr("disabled");
+				if (responseData.errorMessage){
+					window.alert(responseData.errorMessage,"NOTIFICATION ACKNOWLEDGE FAILURE");
+				}
+				else{
+					console.log(responseData.successMessage);//,"NOTIFICATION ACKNOWLEDGED SUCCESSFULLY");
+					var element = document.getElementById(notificationIdentifier);
+					element.parentNode.removeChild(element);
+				}
+			},
+			error: function(xhr, textStatus){
+				if(textStatus !== 'timeout'){
+					$("#"+buttonSelectorId).removeAttr("disabled");
+				}
+				if(textStatus === 'timeout'){
+					console.log("Failed from timeout");
+					if (this.tryCount <= this.retryLimit) {
+						this.tryCount += 1;
+						this.timeout += 1000;
+						$.ajax(this);
+						return;
+					}
+					else{
+						$("#"+buttonSelectorId).removeAttr("disabled");
+					}
+				}
+				else if (xhr.status >= 400){
+					window.alert('INVALID_REQUEST','INVALID REQUEST FAILURE');
+				}
+				else{
+					window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");
+				}
+			},
+			complete: function(){
+			}
+		});	
+	},
+	declineMeetingNotification: function(notificationIdentifier,buttonSelectorId,key,title,sender){
+		$("#"+buttonSelectorId).attr("disabled", "disabled");
+		$.ajax({
+			method: 'POST',
+			url: window.server + '/declineMeetingNotification',
+			data: {
+				requesterUser:window.username,
+				requesterToken:window.sessionToken,
+				key:key,
+				title:title,
+				sender:sender
+			},
+			tryCount : 0,
+			retryLimit : 3,
+			timeout:1000,
+			datamethod:'json',
+			success: function(responseData,responseStatus,responseXHR){
+				$("#"+buttonSelectorId).removeAttr("disabled");
+				if (responseData.errorMessage){
+					window.alert(responseData.errorMessage,"NOTIFICATION ACKNOWLEDGE FAILURE");
+				}
+				else{
+					console.log(responseData.successMessage);//,"NOTIFICATION ACKNOWLEDGED SUCCESSFULLY");
+					var element = document.getElementById(notificationIdentifier);
+					element.parentNode.removeChild(element);
+				}
+			},
+			error: function(xhr, textStatus){
+				if(textStatus !== 'timeout'){
+					$("#"+buttonSelectorId).removeAttr("disabled");
+				}
+				if(textStatus === 'timeout'){
+					console.log("Failed from timeout");
+					if (this.tryCount <= this.retryLimit) {
+						this.tryCount += 1;
+						this.timeout += 1000;
+						$.ajax(this);
+						return;
+					}
+					else{
+						$("#"+buttonSelectorId).removeAttr("disabled");
+					}
+				}
+				else if (xhr.status >= 400){
+					window.alert('INVALID_REQUEST','INVALID REQUEST FAILURE');
+				}
+				else{
+					window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");
+				}
+			},
+			complete: function(){
+			}
+		});	
+	},
+	acknowledgeNotification: function(notificationIdentifier,buttonSelectorId,key,title,sender){
+		$("#"+buttonSelectorId).attr("disabled", "disabled");
+		$.ajax({
+			method: 'POST',
+			url: window.server + '/acknowledgeNotification',
+			data: {
+				requesterUser:window.username,
+				requesterToken:window.sessionToken,
+				key:key,
+				title:title,
+				sender:sender
+			},
+			tryCount : 0,
+			retryLimit : 3,
+			timeout:1000,
+			datamethod:'json',
+			success: function(responseData,responseStatus,responseXHR){
+				$("#"+buttonSelectorId).removeAttr("disabled");
+				if (responseData.errorMessage){
+					window.alert(responseData.errorMessage,"NOTIFICATION ACKNOWLEDGE FAILURE");
+				}
+				else{
+					console.log(responseData.successMessage);//,"NOTIFICATION ACKNOWLEDGED SUCCESSFULLY");
+					var element = document.getElementById(notificationIdentifier);
+					element.parentNode.removeChild(element);
+				}
+			},
+			error: function(xhr, textStatus){
+				if(textStatus !== 'timeout'){
+					$("#"+buttonSelectorId).removeAttr("disabled");
+				}
+				if(textStatus === 'timeout'){
+					console.log("Failed from timeout");
+					if (this.tryCount <= this.retryLimit) {
+						this.tryCount += 1;
+						this.timeout += 1000;
+						$.ajax(this);
+						return;
+					}
+					else{
+						$("#"+buttonSelectorId).removeAttr("disabled");
 					}
 				}
 				else if (xhr.status >= 400){

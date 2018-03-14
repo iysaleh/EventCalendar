@@ -14,6 +14,15 @@ let index = {
 		
 		if (window.isAdmin===true){
 			$('#left').load("admin_control_panel.html");
+			$(document).ready(function(){
+				$('#main_content').load("notifications.html");
+			});
+		}
+		else{
+			$('#left').load("control_panel.html");
+			$(document).ready(function(){
+				$('#main_content').load("notifications.html");
+			});
 		}
 		//Load HTML Login Page to left panel.
 		//$('#left').load("login.html");

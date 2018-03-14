@@ -4,8 +4,9 @@ if (typeof asticode === "undefined") {
 	calendar_events = [];
 	notifications = [];
 	isAdmin = false;
-	username = ""
-	sessionToken = ""
+	username = "";
+	sessionToken = "";
+	notificationsHtml = "";
 }
 
 let login = {
@@ -52,6 +53,95 @@ let login = {
 				}
 			});
 		});
+	},
+	updateNotifications: function() {
+		$(document).ready(function(){
+			$.ajax({
+				method: 'get',
+				url: window.server + '/getNotificationsList',
+				data: {
+					requesterUser:window.username,
+					requesterToken:window.sessionToken,
+				},
+				tryCount : 0,
+				retryLimit : 5,
+				timeout:1000,
+				success: function(responseData,responseStatus,responseXHR){
+					//Compute new notifications set
+					var new_notifications = _.filter(responseData, function(obj){ return !_.findWhere(window.notifications, obj); });
+					console.log(new_notifications);
+					//Add new notification objects to notificationsHtml
+					for (let i = 0; i < new_notifications.length;i++){
+						if (new_notifications[i].type==='respond'){
+							window.notificationsHtml += login.getMeetingRespondNotificationHTML(new_notifications[i]);
+						}
+						else if (new_notifications[i].type==='acknowledge'){
+							window.notificationsHtml += login.getAcknowledgeNotificationHTML(new_notifications[i]);
+						}
+					}
+					
+					//If notifications page is in DOM, add notifications to page directly
+					if (document.getElementById('notifications-pane')) {
+						for (let i = 0; i < new_notifications.length;i++){
+							if (new_notifications[i].type==='respond'){
+								document.getElementById('notifications-pane').insertAdjacentHTML('beforeend',login.getMeetingRespondNotificationHTML(new_notifications[i]));
+							}
+							else if (new_notifications[i].type==='acknowledge'){
+								document.getElementById('notifications-pane').insertAdjacentHTML('beforeend',login.getAcknowledgeNotificationHTML(new_notifications[i]));
+							}
+						}
+					}
+					//set notifications to include new notifications
+					window.notifications = responseData;
+					setTimeout(function(){login.updateNotifications();},5000);
+
+				},
+				error: function(xhr, textStatus){
+					if(textStatus === 'timeout'){
+						console.log("Failed from timeout");
+						if (this.tryCount <= this.retryLimit) {
+							this.tryCount += 1;
+							this.timeout += 1500;
+							//try again
+							$.ajax(this);
+							return;
+						}
+					}
+					else{
+						window.alert('Unable to login to server: '+window.server,"CONNECTION FAILURE");
+					}
+				}
+			});
+		});
+	},
+	getMeetingRespondNotificationHTML: function(notification){
+		var identifier = "notification-"+notification.key+"-"+notification.title;
+		var buttonAcceptIdentifier = "notification-"+notification.key+"-"+notification.title+"-buttonAccept";
+		var buttonIgnoreIdentifier = "notification-"+notification.key+"-"+notification.title+"-buttonIgnore";
+		var buttonDeclineIdentifier = "notification-"+notification.key+"-"+notification.title+"-buttonDecline";
+
+		var resHTML = "";
+		resHTML += "<form class='control-panel-form' id='"+identifier+"'>\n";
+		resHTML += "\t<label>"+notification.title+"</label></br>\n";
+		resHTML += "\t<label>"+notification.message+"</label></br>\n";
+		resHTML += "\t<label>Meeting Originated from: "+notification.sender+"</label><br/>\n";
+		resHTML += "\t<button type='button' id='"+buttonAcceptIdentifier+"' class='three-button-accept' onclick=admin_control_panel.acceptMeetingNotification('"+identifier+"','"+buttonAcceptIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')>Accept</button>\n";
+		resHTML += "\t<button type='button' id='"+buttonIgnoreIdentifier+"' class='three-button-ignore' onclick=admin_control_panel.ignoreMeetingNotification('"+identifier+"','"+buttonIgnoreIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')>Ignore</button>\n";
+		resHTML += "\t<button type='button' id='"+buttonDeclineIdentifier+"' class='three-button-decline' onclick=admin_control_panel.declineMeetingNotification('"+identifier+"','"+buttonDeclineIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')>Decline</button>\n";
+		resHTML += "</form>\n";
+		return resHTML;
+	},
+	getAcknowledgeNotificationHTML: function(notification){
+		var identifier = "notification-"+notification.key+"-"+notification.title;
+		var buttonIdentifier = "notification-"+notification.key+"-"+notification.title+"-button";
+		var resHTML = "";
+		resHTML += "<form class='control-panel-form' id='"+identifier+"'>\n";
+		resHTML += "\t<label>"+notification.title+"</label></br>\n";
+		resHTML += "\t<label>"+notification.message+"</label></br>\n";
+		resHTML += "\t<label>Meeting Originated from: "+notification.sender+"</label>\n";
+		resHTML += "\t<button type='button' id='"+buttonIdentifier+"' onclick=admin_control_panel.acknowledgeNotification('"+identifier+"','"+buttonIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')>Acknowledge</button>\n";
+		resHTML += "</form>\n";
+		return resHTML;
 	}
 };
 
@@ -72,18 +162,14 @@ asticode.authentication = {
 				}
 				else{
 					//window.calendar_events = window.calendar_events.concat(responseData['meetings']);
-					window.notifications = window.notifications.concat(responseData['notifications']);
+					//window.notifications = window.notifications.concat(responseData['notifications']);
 					window.isAdmin = responseData['isAdmin'];
 					window.sessionToken = responseData['sessionToken'];
 					window.username = responseData['username'];
-					$('body').load('index.html');
-					/*$(document).ready(function() {
-						window.alert(responseData[0]);
-						$('#calendar').fullCalendar('addEventSource',responseData[0]['meetings']);
-						$('#calendar').fullCalendar('refetchEvents');
-						$('#calendar').fullCalendar('render');
-					});*/
-					login.updateMeetingsCalendar()
+					$('body').load('index.html',function(){
+						login.updateMeetingsCalendar();
+						login.updateNotifications();
+					});
 				}
 			},
 			error: function(xhr){

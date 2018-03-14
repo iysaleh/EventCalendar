@@ -138,6 +138,55 @@ a {
   cursor: pointer;
 }
 
+.control-panel-form .three-button-accept {
+  font-family: "Roboto", sans-serif;
+  text-transform: uppercase;
+  outline: 0;
+  background: #4CAF50;
+  width: 25%;
+  border: 0;
+  padding: 15px;
+  margin: 5px 5px;
+  color: #FFFFFF;
+  font-size: 14px;
+  -webkit-transition: all 0.3 ease;
+  transition: all 0.3 ease;
+  cursor: pointer;
+}
+
+.control-panel-form .three-button-decline {
+  font-family: "Roboto", sans-serif;
+  text-transform: uppercase;
+  outline: 0;
+  background: red;
+  width: 25%;
+  border: 0;
+  padding: 15px;
+  margin: 5px 5px;
+  color: #FFFFFF;
+  font-size: 14px;
+  -webkit-transition: all 0.3 ease;
+  transition: all 0.3 ease;
+  cursor: pointer;
+}
+
+.control-panel-form .three-button-ignore {
+  font-family: "Roboto", sans-serif;
+  text-transform: uppercase;
+  outline: 0;
+  background: orange;
+  width: 25%;
+  border: 0;
+  padding: 15px;
+  margin: 5px 5px;
+  color: #FFFFFF;
+  font-size: 14px;
+  -webkit-transition: all 0.3 ease;
+  transition: all 0.3 ease;
+  cursor: pointer;
+}
+
+
 .control-panel-form button:disabled{
   color:white;
   background-color: darkgrey;

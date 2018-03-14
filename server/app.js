@@ -147,11 +147,8 @@ function deleteMeeting (requesterUser,requesterToken,roomNumber,key,title,owner,
 			else{
 				console.log("IN HERE");
 				MongoClient.connect(sUrl, function(err, db){
-					console.log("IN HERE2");
 					updatePromises = [];
 					updatePromises.push(db.collection('employees').update({roomNumber:roomNumber},{$pull: { 'meetings': {key:key, title:title}}},{multi: true}));
-					console.log("IN HERE3");
-					console.log(updatePromises);
 					var notificationOfDeletion = {
 						title:title,
 						key:key,
@@ -168,13 +165,11 @@ function deleteMeeting (requesterUser,requesterToken,roomNumber,key,title,owner,
 						sender:requesterUser};
 					if (requesterUser === owner){ //if Meeting Owner, delete meeting for everyone!
 						for (let i = 0; i < meetingEmployees.length;i++){
-							console.log("DELETING MEETING FOR EMPLOYEE: "+ meetingEmployees[i]);
 							updatePromises.push(db.collection('employees').update({username:meetingEmployees[i]},{$pull: { 'meetings': {key:key, title:title}}},{multi: true}));
 							updatePromises.push(db.collection('employees').update({username:meetingEmployees[i]},{$addToSet:{notifications:notificationOfDeletion}}));
 						}
 					}
 					else{ //only delete meeting for current employee
-						console.log("ONLY DELETING MEETING FOR CURRENT EMPLOYEE!");
 						updatePromises.push(db.collection('employees').update({username:requesterUser},{$pull: { 'meetings': {key:key, title:title}}},{multi: true}));
 						updatePromises.push(db.collection('employees').update({username:requesterUser},{$addToSet:{notifications:notificationOfDeletionSelf}}));
 					}
@@ -455,7 +450,6 @@ function suggestMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,me
 				resolve("BAD_CREDENTIALS");
 			}
 			else{
-				console.log("HERE I AM");
 				getRoomsList(requesterUser,requesterToken).then(function(meetingRooms){
 					var arrayOfMeetingArrays = [];
 					//Get meetings for rooms
@@ -477,7 +471,7 @@ function suggestMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,me
 							for (let i = 0; i < result.length;i++){
 								//For each meeting
 								var meetingObj = result[i].meetings;
-								console.log(meetingObj);
+								//console.log(meetingObj);
 								if (i < numberOfRooms){ //Room Verification logic
 									if (meetingObj.length===0){//specialCase where room has no meetings so it's available already!
 										suitableMeetingRooms.push(result[i].roomNumber);
@@ -740,7 +734,7 @@ function randU32Sync() {
 }
 
 function logger(req,res,next){
-//  console.log(new Date(), req.method, req.url, req.query, req.body);
+  console.log(new Date(), req.method, req.url, req.query, req.body);
   next();
 }
 
@@ -804,7 +798,6 @@ rootRouter.post('/addEmployee',function(req,res,next){
 });
 
 rootRouter.post('/addRoom',function(req,res,next){
-	console.log(req.query);
 	addRoom(req.body.requesterUser,req.body.requesterToken,req.body.roomNumber,req.body.roomCapacity).then(function(result){
 		res.status(200).json(result);
 		res.end();
@@ -818,7 +811,6 @@ rootRouter.post('/updateProfile',function(req,res,next){
 	}
 	else{
 		updateProfile(req.body.requesterUser,req.body.requesterToken,req.body.pass,req.body.fname,req.body.mname,req.body.lname,req.body.startHours,req.body.endHours,req.body.isVisible).then(function(result){
-			console.log(result);
 			res.status(200).json(result);
 			res.end();
 		});

@@ -480,5 +480,6 @@ let admin_control_panel = {
 			},
 			complete: function(){
 			}
-		});	}
+		});	
+	}
 };

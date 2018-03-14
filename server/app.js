@@ -624,7 +624,6 @@ rootRouter.get('/getMeetingsList',function(req,res,next){
 	}
 	else{
 		getMeetingsList(req.query.requesterUser,req.query.requesterToken,req.query.meetingsUser).then(function(result){
-			console.log(result);
 			res.status(200).json(result);
 			res.end();
 		});

@@ -353,13 +353,13 @@ let admin_control_panel = {
 				if ( responseData.length === 0){
 					window.alert("Delete Room Failed!","ROOM DELETE FAILURE");
 				}
-				else if ( responseData==='ROOM_DELETE_SUCCESS' ){
-					window.alert("Room Number '" + roomNumber + "' successfully deleted!","ROOM DELETE SUCCESS");
-					$('#del-rooms-list-'+roomNumber).remove();
-				}
 				else if ( responseData==='BAD_CREDENTIALS' ){
 					window.alert("Bad credentials detected! Are you an Administrator?","ROOM DELETE FAILURE");
 				}
+				else {
+					window.alert("Meeting:" + document.getElementById(meetingSelectorId).getAttribute('title') + " successfully deleted!");
+				}
+
 			},
 			error: function(xhr, textStatus){
 				if(textStatus === 'timeout'){

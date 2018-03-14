@@ -33,7 +33,7 @@ function addEmployee (requesterUser,requesterToken,username,password,fname,mname
 					var query = {username:username};
 					employees.find(query).toArray().then(function(result){
 						if (result.length === 0) {
-							employees.insert({username:username,password:password,isAdmin:isAdmin,startHour:"07:00:00",endHour:"19:00:00",fname:fname,mname:mname,lname:lname,meetings:[],notifications:[]});
+							employees.insert({username:username,password:password,isAdmin:isAdmin,startHour:"07:00:00",endHour:"19:00:00",fname:fname,mname:mname,lname:lname,sessionToken:"",meetings:[],notifications:[]});
 							resolve("USER_ADD_SUCCESS")
 							db.close()
 						}
@@ -139,6 +139,109 @@ function deleteMeeting (requesterUser,requesterToken,roomNumber) {
 	});
 }
 
+function acknowledgeNotification(requesterUser,requesterToken,key,title,sender){
+	return new Promise( function(resolve) {
+		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(){
+			MongoClient.connect(sUrl, function(err, db){
+				db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
+					resolve({errorMessage:"",successMessage:"NOTIFICATION_SUCCESSFULLY_ACKNOWLEDGED"});
+					db.close();
+				});
+			});
+		});
+	});	
+}
+
+function ignoreMeetingNotification(requesterUser,requesterToken,key,title,sender){
+	return new Promise( function(resolve) {
+		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(){
+			MongoClient.connect(sUrl, function(err, db){
+				db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
+					resolve({errorMessage:"",successMessage:"NOTIFICATION_SUCCESSFULLY_IGNORED"});
+					db.close();
+				});
+			});
+		});
+	});	
+}
+
+
+function declineMeetingNotification(requesterUser,requesterToken,key,title,sender){
+	return new Promise( function(resolve) {
+		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(){
+			MongoClient.connect(sUrl, function(err, db){
+				db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
+					var notificationCreationTime = moment();
+					var notificationForOwner = {
+						title:title,
+						key:key,
+						message:requesterUser + " has declined your meeting!.",
+						type:"acknowledge",
+						creationTime:notificationCreationTime.format('YYYY/MM/DD HH:mm').toString(),
+						sender:requesterUser};
+					db.collection('employees').update({username:sender},{$addToSet:{notifications:notificationForOwner}}).then(function(result){
+						resolve({errorMessage:"",successMessage:"MEETING_SUCCESSFULLY_DECLINED"});
+						db.close();
+					});;
+				});
+			});
+		});
+	});	
+}
+
+function acceptMeetingNotification(requesterUser,requesterToken,key,title,sender){
+	return new Promise( function(resolve) {
+		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(){
+			MongoClient.connect(sUrl, function(err, db){
+				db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
+					var notificationCreationTime = moment();
+					var notificationForOwner = {
+						title:title,
+						key:key,
+						message:requesterUser + " has accepted your meeting!.",
+						type:"acknowledge",
+						creationTime:notificationCreationTime.format('YYYY/MM/DD HH:mm').toString(),
+						sender:requesterUser};
+					db.collection('employees').update({username:sender},{$addToSet:{notifications:notificationForOwner}}).then(function(result){
+						resolve({errorMessage:"",successMessage:"MEETING_SUCCESSFULLY_ACCEPTED"});
+						db.close();
+					});;
+				});
+			});
+		});
+	});	
+}
+
+
+
+/*
+function acknowledgeNotification (requesterUser,requesterToken,key,title,sender) {
+	console.log("GOT THIS FAR");
+	return new Promise( function(resolve) {
+		console.log("ATLEAST I GOT THIS FAR");
+		console.log("HERE ARE MY ARGS");
+		console.log(requesterUser+" KEY:"+key + " TITLE: "+title + " SENDER: "+sender);
+		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(verResult){
+			if (verResult.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				console.log("HERE I AM!");
+				MongoClient.connect(sUrl, function(err, db){
+					var employees = db.collection('employees');
+					console.log("HERE ARE MY ARGS");
+					console.log(requesterUser+" KEY:"+key + " TITLE: "+title + " SENDER: "+sender);
+					employees.update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true});
+					console.log('DID I GET THIS FAR?');
+					resolve({errorMessage:"",successMessage:"NOTIFICATION_SUCCESSFULLY_ACKNOWLEDGED"});
+					db.close();
+				});
+			}
+		});
+	});
+}*/
+
+
 function verifyMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,meetingEmployees,roomNumber,meetingStartTime,meetingEndTime){
 	return new Promise( function(resolve) {
 		meetingStartHour = moment(meetingStartTime.slice(-5),'HH:mm');
@@ -226,7 +329,7 @@ function createMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,mee
 						}
 					}
 					if (!roomConflict){//only add meetings if no room conflicts.
-						var meetingKey = randU32Sync();
+						var meetingKey = randU32Sync().toString();
 						var meetingCreationTime = moment();
 						var meetingForRoom = {start:meetingStartTime.format('YYYY/MM/DD HH:mm').toString(),
 										end:meetingEndTime.format('YYYY/MM/DD HH:mm').toString(),
@@ -238,7 +341,7 @@ function createMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,mee
 										roomNumber:roomNumber,
 										meetingEmployees:meetingEmployees,
 										status:"accepted",
-										eventColor:"blue"};
+										color:"green"};
 						var meetingForOwner = {start:meetingStartTime.format('YYYY/MM/DD HH:mm').toString(),
 										end:meetingEndTime.format('YYYY/MM/DD HH:mm').toString(),
 										creationTime:meetingCreationTime.format('YYYY/MM/DD HH:mm').toString(),
@@ -249,7 +352,7 @@ function createMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,mee
 										roomNumber:roomNumber,
 										meetingEmployees:meetingEmployees,
 										status:"accepted",
-										eventColor:"green"};
+										color:"green"};
 						var meetingForInvitee = {start:meetingStartTime.format('YYYY/MM/DD HH:mm').toString(),
 										end:meetingEndTime.format('YYYY/MM/DD HH:mm').toString(),
 										creationTime:meetingCreationTime.format('YYYY/MM/DD HH:mm').toString(),
@@ -260,20 +363,22 @@ function createMeeting(requesterUser,requesterToken,meetingTitle,meetingDesc,mee
 										roomNumber:roomNumber,
 										meetingEmployees:meetingEmployees,
 										status:"pending",
-										eventColor:"yellow"};
+										color:"yellow"};
 						var notificationOwner = {creationTime:meetingCreationTime,
 										title:meetingTitle,
 										key:meetingKey,
-										message:"Meeting successfully created.",
+										message:"Meeting successfully created from " + meetingStartTime.format('YYYY/MM/DD HH:mm').toString() + " to " + meetingEndTime.format('YYYY/MM/DD HH:mm').toString() + " in room #" + roomNumber.toString() + ".",
 										type:"acknowledge",
-										creationTime:meetingCreationTime.format('YYYY/MM/DD HH:mm').toString()};
+										creationTime:meetingCreationTime.format('YYYY/MM/DD HH:mm').toString(),
+										sender:requesterUser};
 						var notificationInvitee = {creationTime:meetingCreationTime,
 										title:meetingTitle,
 										key:meetingKey,
 										description:meetingDesc,
-										message:"You have been invited to a new meeting!",
-										type:"Respond",
-										creationTime:meetingCreationTime.format('YYYY/MM/DD HH:mm').toString()};
+										message:"You have been invited to a new meeting from " + meetingStartTime.format('YYYY/MM/DD HH:mm').toString() + " to " + meetingEndTime.format('YYYY/MM/DD HH:mm').toString() + " in room #" + roomNumber.toString() + ". How do you wish to respond?",
+										type:"respond",
+										creationTime:meetingCreationTime.format('YYYY/MM/DD HH:mm').toString(),
+										sender:requesterUser};
 						MongoClient.connect(sUrl, function(err, db){
 							//Add meeting to room meetings
 							db.collection('rooms').update({roomNumber:roomNumber},{$addToSet:{meetings:meetingForRoom}});
@@ -548,6 +653,26 @@ function getMeetingsList(requesterUser,requesterToken,meetingsUser) {
 	});
 }
 
+function getNotificationsList(requesterUser,requesterToken) {
+	verify = _verifyRequesterUserToken(requesterUser,requesterToken);
+	return new Promise( function(resolve) {
+		Promise.all([verify]).then(function(result){
+			if (result.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				MongoClient.connect(sUrl, function(err, db){
+					db.collection('employees').find({username:requesterUser}).map(function(item){
+						return item.notifications;
+					}).toArray().then(function(result){
+						resolve(result[0]);
+					});
+				});				
+			}
+		});
+	});
+}
+
 function login (username,password) {
 	return new Promise( function(resolve) {
 		MongoClient.connect(sUrl, function(err, db){
@@ -557,7 +682,7 @@ function login (username,password) {
 				if (result.length===1){
 					//Generate login Session token if not exist
 					if (result[0].sessionToken===""){
-						result[0].sessionToken = randU32Sync();
+						result[0].sessionToken = randU32Sync().toString();
 						addLoginSessionToken(result[0].username,result[0].sessionToken);
 					}
 				}
@@ -630,6 +755,19 @@ rootRouter.get('/getMeetingsList',function(req,res,next){
 	}
 });
 
+rootRouter.get('/getNotificationsList',function(req,res,next){
+	if (!req.query.requesterUser || !req.query.requesterToken) {
+		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
+		res.end();
+	}
+	else{
+		getNotificationsList(req.query.requesterUser,req.query.requesterToken,req.query.meetingsUser).then(function(result){
+			res.status(200).json(result);
+			res.end();
+		});
+	}
+});
+
 rootRouter.post('/addEmployee',function(req,res,next){
 	addEmployee(req.body.requesterUser,req.body.requesterToken,req.body.user,req.body.pass,req.body.fname,req.body.mname,req.body.lname,req.body.isAdmin).then(function(result){
 		res.status(200).json(result);
@@ -666,6 +804,62 @@ rootRouter.post('/verifyMeeting',function(req,res,next){
 	}
 	else{
 		verifyMeeting(req.body.requesterUser,req.body.requesterToken,req.body.meetingTitle,req.body.meetingDesc,req.body.meetingEmployees,req.body.roomNumber,req.body.startTime,req.body.endTime).then(function(result){
+			console.log(result);
+			res.status(200).json(result);
+			res.end();
+		});
+	}
+});
+
+rootRouter.post('/acknowledgeNotification',function(req,res,next){
+	if (!req.body.requesterUser || !req.body.requesterToken || !req.body.key || !req.body.title || !req.body.sender) {
+		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
+		res.end();
+	}
+	else{
+		acknowledgeNotification(req.body.requesterUser,req.body.requesterToken,req.body.key,req.body.title,req.body.sender).then(function(result){
+			console.log(result);
+			res.status(200).json(result);
+			res.end();
+		});
+	}
+});
+
+rootRouter.post('/acceptMeetingNotification',function(req,res,next){
+	if (!req.body.requesterUser || !req.body.requesterToken || !req.body.key || !req.body.title || !req.body.sender) {
+		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
+		res.end();
+	}
+	else{
+		acceptMeetingNotification(req.body.requesterUser,req.body.requesterToken,req.body.key,req.body.title,req.body.sender).then(function(result){
+			console.log(result);
+			res.status(200).json(result);
+			res.end();
+		});
+	}
+});
+
+rootRouter.post('/declineMeetingNotification',function(req,res,next){
+	if (!req.body.requesterUser || !req.body.requesterToken || !req.body.key || !req.body.title || !req.body.sender) {
+		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
+		res.end();
+	}
+	else{
+		declineMeetingNotification(req.body.requesterUser,req.body.requesterToken,req.body.key,req.body.title,req.body.sender).then(function(result){
+			console.log(result);
+			res.status(200).json(result);
+			res.end();
+		});
+	}
+});
+
+rootRouter.post('/ignoreMeetingNotification',function(req,res,next){
+	if (!req.body.requesterUser || !req.body.requesterToken || !req.body.key || !req.body.title || !req.body.sender) {
+		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
+		res.end();
+	}
+	else{
+		ignoreMeetingNotification(req.body.requesterUser,req.body.requesterToken,req.body.key,req.body.title,req.body.sender).then(function(result){
 			console.log(result);
 			res.status(200).json(result);
 			res.end();

@@ -138,20 +138,50 @@ function updateProfile (requesterUser,requesterToken,password,fname,mname,lname,
 	});
 }
 
-/*TODOTODOTODO*/
-function deleteMeeting (requesterUser,requesterToken,roomNumber) {
-	verify = _verifyRequesterUserToken(requesterUser,requesterToken);
+function deleteMeeting (requesterUser,requesterToken,roomNumber,key,title,owner,meetingEmployees) {
 	return new Promise( function(resolve) {
-		Promise.all([verify]).then(function(result){
+		Promise.all([_verifyRequesterUserToken(requesterUser,requesterToken)]).then(function(result){
 			if (result.length===0){
 				resolve("BAD_CREDENTIALS");
 			}
 			else{
+				console.log("IN HERE");
 				MongoClient.connect(sUrl, function(err, db){
-					var rooms = db.collection('rooms');
-					rooms.remove({roomNumber:roomNumber});
-					resolve("ROOM_DELETE_SUCCESS");
-					db.close();
+					console.log("IN HERE2");
+					updatePromises = [];
+					updatePromises.push(db.collection('employees').update({roomNumber:roomNumber},{$pull: { 'meetings': {key:key, title:title}}},{multi: true}));
+					console.log("IN HERE3");
+					console.log(updatePromises);
+					var notificationOfDeletion = {
+						title:title,
+						key:key,
+						message:requesterUser + " has terminated your scheduled meeting: "+ title +"!",
+						type:"acknowledge",
+						creationTime:moment().format('YYYY/MM/DD HH:mm').toString(),
+						sender:requesterUser};
+					var notificationOfDeletionSelf = {
+						title:title,
+						key:key,
+						message:"You have terminated your meeting: "+ title +"!",
+						type:"acknowledge",
+						creationTime:moment().format('YYYY/MM/DD HH:mm').toString(),
+						sender:requesterUser};
+					if (requesterUser === owner){ //if Meeting Owner, delete meeting for everyone!
+						for (let i = 0; i < meetingEmployees.length;i++){
+							console.log("DELETING MEETING FOR EMPLOYEE: "+ meetingEmployees[i]);
+							updatePromises.push(db.collection('employees').update({username:meetingEmployees[i]},{$pull: { 'meetings': {key:key, title:title}}},{multi: true}));
+							updatePromises.push(db.collection('employees').update({username:meetingEmployees[i]},{$addToSet:{notifications:notificationOfDeletion}}));
+						}
+					}
+					else{ //only delete meeting for current employee
+						console.log("ONLY DELETING MEETING FOR CURRENT EMPLOYEE!");
+						updatePromises.push(db.collection('employees').update({username:requesterUser},{$pull: { 'meetings': {key:key, title:title}}},{multi: true}));
+						updatePromises.push(db.collection('employees').update({username:requesterUser},{$addToSet:{notifications:notificationOfDeletionSelf}}));
+					}
+					Promise.all(updatePromises).then(function(result){
+						resolve({errorMessage:"",successMessage:"MEETING_SUCCESSFULLY_DELETED"});
+						db.close();
+					});
 				});
 			}
 		});
@@ -160,26 +190,36 @@ function deleteMeeting (requesterUser,requesterToken,roomNumber) {
 
 function acknowledgeNotification(requesterUser,requesterToken,key,title,sender){
 	return new Promise( function(resolve) {
-		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(){
-			MongoClient.connect(sUrl, function(err, db){
-				db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
-					resolve({errorMessage:"",successMessage:"NOTIFICATION_SUCCESSFULLY_ACKNOWLEDGED"});
-					db.close();
+		Promise.all([_verifyRequesterUserToken(requesterUser,requesterToken)]).then(function(result){
+			if (result.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				MongoClient.connect(sUrl, function(err, db){
+					db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
+						resolve({errorMessage:"",successMessage:"NOTIFICATION_SUCCESSFULLY_ACKNOWLEDGED"});
+						db.close();
+					});
 				});
-			});
+			}
 		});
 	});	
 }
 
 function ignoreMeetingNotification(requesterUser,requesterToken,key,title,sender){
 	return new Promise( function(resolve) {
-		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(){
-			MongoClient.connect(sUrl, function(err, db){
-				db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
-					resolve({errorMessage:"",successMessage:"NOTIFICATION_SUCCESSFULLY_IGNORED"});
-					db.close();
+		Promise.all([_verifyRequesterUserToken(requesterUser,requesterToken)]).then(function(result){
+			if (result.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				MongoClient.connect(sUrl, function(err, db){
+					db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
+						resolve({errorMessage:"",successMessage:"NOTIFICATION_SUCCESSFULLY_IGNORED"});
+						db.close();
+					});
 				});
-			});
+			}
 		});
 	});	
 }
@@ -187,46 +227,56 @@ function ignoreMeetingNotification(requesterUser,requesterToken,key,title,sender
 
 function declineMeetingNotification(requesterUser,requesterToken,key,title,sender){
 	return new Promise( function(resolve) {
-		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(){
-			MongoClient.connect(sUrl, function(err, db){
-				db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
-					var notificationCreationTime = moment();
-					var notificationForOwner = {
-						title:title,
-						key:key,
-						message:requesterUser + " has declined your meeting!.",
-						type:"acknowledge",
-						creationTime:notificationCreationTime.format('YYYY/MM/DD HH:mm').toString(),
-						sender:requesterUser};
-					db.collection('employees').update({username:sender},{$addToSet:{notifications:notificationForOwner}}).then(function(result){
-						resolve({errorMessage:"",successMessage:"MEETING_SUCCESSFULLY_DECLINED"});
-						db.close();
-					});;
+		Promise.all([_verifyRequesterUserToken(requesterUser,requesterToken)]).then(function(result){
+			if (result.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				MongoClient.connect(sUrl, function(err, db){
+					db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
+						var notificationCreationTime = moment();
+						var notificationForOwner = {
+							title:title,
+							key:key,
+							message:requesterUser + " has declined your meeting!.",
+							type:"acknowledge",
+							creationTime:notificationCreationTime.format('YYYY/MM/DD HH:mm').toString(),
+							sender:requesterUser};
+						db.collection('employees').update({username:sender},{$addToSet:{notifications:notificationForOwner}}).then(function(result){
+							resolve({errorMessage:"",successMessage:"MEETING_SUCCESSFULLY_DECLINED"});
+							db.close();
+						});;
+					});
 				});
-			});
+			}
 		});
 	});	
 }
 
 function acceptMeetingNotification(requesterUser,requesterToken,key,title,sender){
 	return new Promise( function(resolve) {
-		_verifyRequesterUserToken(requesterUser,requesterToken).then(function(){
-			MongoClient.connect(sUrl, function(err, db){
-				db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
-					var notificationCreationTime = moment();
-					var notificationForOwner = {
-						title:title,
-						key:key,
-						message:requesterUser + " has accepted your meeting!.",
-						type:"acknowledge",
-						creationTime:notificationCreationTime.format('YYYY/MM/DD HH:mm').toString(),
-						sender:requesterUser};
-					db.collection('employees').update({username:sender},{$addToSet:{notifications:notificationForOwner}}).then(function(result){
-						resolve({errorMessage:"",successMessage:"MEETING_SUCCESSFULLY_ACCEPTED"});
-						db.close();
-					});;
+		Promise.all([_verifyRequesterUserToken(requesterUser,requesterToken)]).then(function(result){
+			if (result.length===0){
+				resolve("BAD_CREDENTIALS");
+			}
+			else{
+				MongoClient.connect(sUrl, function(err, db){
+					db.collection('employees').update({username:requesterUser},{$pull: { 'notifications': {key:key, title:title,sender:sender}}},{multi: true}).then(function(result){
+						var notificationCreationTime = moment();
+						var notificationForOwner = {
+							title:title,
+							key:key,
+							message:requesterUser + " has accepted your meeting!.",
+							type:"acknowledge",
+							creationTime:notificationCreationTime.format('YYYY/MM/DD HH:mm').toString(),
+							sender:requesterUser};
+						db.collection('employees').update({username:sender},{$addToSet:{notifications:notificationForOwner}}).then(function(result){
+							resolve({errorMessage:"",successMessage:"MEETING_SUCCESSFULLY_ACCEPTED"});
+							db.close();
+						});;
+					});
 				});
-			});
+			}
 		});
 	});	
 }
@@ -796,6 +846,22 @@ rootRouter.post('/verifyMeeting',function(req,res,next){
 	}
 	else{
 		verifyMeeting(req.body.requesterUser,req.body.requesterToken,req.body.meetingTitle,req.body.meetingDesc,req.body.meetingEmployees,req.body.roomNumber,req.body.startTime,req.body.endTime).then(function(result){
+			console.log(result);
+			res.status(200).json(result);
+			res.end();
+		});
+	}
+});
+
+rootRouter.post('/deleteMeeting',function(req,res,next){
+	if (!req.body.requesterUser || !req.body.requesterToken || !req.body.roomNumber || !req.body.key || !req.body.title || !req.body.owner || !req.body.meetingEmployees) {
+		res.status(400).json("INCOMPLETE_REQUEST_DETECTED");
+		res.end();
+	}
+	else{
+		req.body.meetingEmployees = req.body.meetingEmployees.split(',');
+		console.log(req.body);
+		deleteMeeting(req.body.requesterUser,req.body.requesterToken,req.body.roomNumber,req.body.key,req.body.title,req.body.owner,req.body.meetingEmployees).then(function(result){
 			console.log(result);
 			res.status(200).json(result);
 			res.end();

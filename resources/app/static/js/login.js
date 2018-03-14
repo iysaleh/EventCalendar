@@ -124,9 +124,9 @@ let login = {
 		resHTML += "\t<label>"+notification.title+"</label></br>\n";
 		resHTML += "\t<label>"+notification.message+"</label></br>\n";
 		resHTML += "\t<label>Meeting Originated from: "+notification.sender+"</label><br/>\n";
-		resHTML += "\t<button type='button' id='"+buttonAcceptIdentifier+"' class='three-button-accept' onclick=admin_control_panel.acceptMeetingNotification('"+identifier+"','"+buttonAcceptIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')>Accept</button>\n";
-		resHTML += "\t<button type='button' id='"+buttonIgnoreIdentifier+"' class='three-button-ignore' onclick=admin_control_panel.ignoreMeetingNotification('"+identifier+"','"+buttonIgnoreIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')>Ignore</button>\n";
-		resHTML += "\t<button type='button' id='"+buttonDeclineIdentifier+"' class='three-button-decline' onclick=admin_control_panel.declineMeetingNotification('"+identifier+"','"+buttonDeclineIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')>Decline</button>\n";
+		resHTML += "\t<button type='button' id='"+buttonAcceptIdentifier+"' class='three-button-accept' onclick=\"admin_control_panel.acceptMeetingNotification('"+identifier+"','"+buttonAcceptIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')\">Accept</button>\n";
+		resHTML += "\t<button type='button' id='"+buttonIgnoreIdentifier+"' class='three-button-ignore' onclick=\"admin_control_panel.ignoreMeetingNotification('"+identifier+"','"+buttonIgnoreIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')\">Ignore</button>\n";
+		resHTML += "\t<button type='button' id='"+buttonDeclineIdentifier+"' class='three-button-decline' onclick=\"admin_control_panel.declineMeetingNotification('"+identifier+"','"+buttonDeclineIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')\">Decline</button>\n";
 		resHTML += "</form>\n";
 		return resHTML;
 	},
@@ -138,7 +138,7 @@ let login = {
 		resHTML += "\t<label>"+notification.title+"</label></br>\n";
 		resHTML += "\t<label>"+notification.message+"</label></br>\n";
 		resHTML += "\t<label>Meeting Originated from: "+notification.sender+"</label>\n";
-		resHTML += "\t<button type='button' id='"+buttonIdentifier+"' onclick=admin_control_panel.acknowledgeNotification('"+identifier+"','"+buttonIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')>Acknowledge</button>\n";
+		resHTML += "\t<button type='button' id='"+buttonIdentifier+"' onclick=\"admin_control_panel.acknowledgeNotification('"+identifier+"','"+buttonIdentifier+"','"+notification.key+"','"+notification.title+"','"+notification.sender+"')\">Acknowledge</button>\n";
 		resHTML += "</form>\n";
 		return resHTML;
 	}

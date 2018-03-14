@@ -245,7 +245,7 @@ let admin_control_panel = {
 				timeout:1000,
 				success: function(responseData,responseStatus,responseXHR){
 					$.each(responseData,function(index,value){
-						$("#"+selectorName).append($("<option></option>").attr({"key":value.key,"title":value.title,"value":value.key,"id":"del-meetings-list-"+value.key}).text("Meeting Title: "+value.title));
+						$("#"+selectorName).append($("<option></option>").attr({"key":value.key,"owner":value.owner,"meetingEmployees":value.meetingEmployees,"title":value.title,"value":"del-meetings-list-"+value.key,"id":"del-meetings-list-"+value.key}).text("Meeting Title: "+value.title));
 					});
 				},
 				error: function(xhr, textStatus){
@@ -333,13 +333,16 @@ let admin_control_panel = {
 			}
 		});
 	},
-	deleteMeeting: function(roomNumber) {
+	deleteMeeting: function(meetingSelectorId) {
 		$.post({
 			url: window.server + '/deleteMeeting',
 			data: {
 				requesterUser:window.username,
 				requesterToken:window.sessionToken,
-				roomNumber:roomNumber
+				key:$('#'+meetingSelectorId).key(),
+				title:$('#'+meetingSelectorId).title(),
+				owner:$('#'+meetingSelectorId).owner(),
+				meetingEmployees:$('#'+meetingSelectorId).meetingEmployees()
 			},
 			datamethod:'json',
 			timeout:5000,
